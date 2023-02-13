@@ -42,6 +42,4 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
-void port_byte_out(uint16_t port, uint8_t data);
-
 #endif
