@@ -3,20 +3,6 @@
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
 
-void port_byte_out(uint16_t port, uint8_t data) {
-    /*
-    I.S. Menerima port dan data
-    F.S. Mengirimkan data ke port
-    */
-    asm volatile ("outb %0, %1" : : "a"(data), "Nd"(port));
-    // "a" (data) -> data akan dimasukkan ke register
-    // "Nd" (port) -> port akan dimasukkan ke register
-    // "outb" -> untuk menuliskan 'data' ke 'port'
-    // "%0" -> data akan dimasukkan ke register %eax
-    // "%1" -> port akan dimasukkan ke register %edx
-    // volatile -> menandakan bahwa kode assembly memiliki efek dimana akan melakukan writing pada I/O port supaya compiler tidak mengoptimasi kode assembly tersebut
-}
-
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     /*
     I.S. Menerima r sebagai baris cursor dan c sebagai kolom cursor
@@ -24,10 +10,10 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     */
     uint16_t pos = r * 80 + c; // Menghitung posisi cursor
     // Mengirimkan posisi cursor ke port CURSOR_PORT_CMD dan CURSOR_PORT_DATA
-    port_byte_out(CURSOR_PORT_CMD, 0x0F);
-    port_byte_out(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
-    port_byte_out(CURSOR_PORT_CMD, 0x0E);
-    port_byte_out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
+    out(CURSOR_PORT_CMD, 0x0F);
+    out(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
+    out(CURSOR_PORT_CMD, 0x0E);
+    out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
