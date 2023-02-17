@@ -14,6 +14,7 @@ extern struct GDTR _gdt_gdtr;
  *
  * @param segment_low  16-bit lower-bit segment limit
  * @param base_low     16-bit lower-bit base address
+ * @param base_high
  * @param base_mid     8-bit middle-bit base address
  * @param type_bit     4-bit contain type flags
  * @param non_system   1-bit contain system
@@ -27,8 +28,10 @@ struct SegmentDescriptor {
     uint8_t             base_mid;
     uint8_t type_bit   : 4;
     uint8_t non_system : 1;
+    //Kurang beberapa bit disini (?)
+    //Harusnya 16 jadi kyknya kurang 3 bit tp gatau apa :)
     // TODO : Continue GDT definition
-
+    uint16_t base_high;
 } __attribute__((packed));
 
 /**
