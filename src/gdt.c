@@ -10,12 +10,15 @@ struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
             // TODO : Implement
+            0x00000,0x0000,0x00,0x0000,0x00
         },
         {
             // TODO : Implement
+            0xFFFFF,0x0000,0x00,0b1010,1
         },
         {
             // TODO : Implement
+            0xFFFFF,0x0000,0x00,0b0010,1
         }
     }
 };
@@ -28,5 +31,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
 struct GDTR _gdt_gdtr = {
     // TODO : Implement, this GDTR will point to global_descriptor_table. 
     //        Use sizeof operator
+    sizeof(global_descriptor_table)-1,
+    &global_descriptor_table
 };
 
