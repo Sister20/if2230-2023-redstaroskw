@@ -28,10 +28,20 @@ struct SegmentDescriptor {
     uint8_t             base_mid;
     uint8_t type_bit   : 4;
     uint8_t non_system : 1;
-    //Kurang beberapa bit disini (?)
-    //Harusnya 16 jadi kyknya kurang 3 bit tp gatau apa :)
+
     // TODO : Continue GDT definition
-    uint16_t base_high;
+    uint8_t S : 1;
+    uint8_t DPL : 1;
+    uint8_t P : 1;
+    // ini 47
+
+    uint8_t limit: 4;
+    uint8_t AVL : 1;
+    uint8_t L : 1;
+    uint8_t DB : 1;
+    uint8_t G : 1;
+
+    uint8_t base_high;
 } __attribute__((packed));
 
 /**
