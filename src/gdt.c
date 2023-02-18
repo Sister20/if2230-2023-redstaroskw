@@ -10,15 +10,24 @@ struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
             // TODO : Implement
-            0x00000,0x0000,0x00,0x0000,0x00
+            // NULL Descriptor
+            0, 0, 0, 0, 0, 0, 0, 0
         },
         {
             // TODO : Implement
+            // Kernel Mode Code
             0xFFFFF,0x0000,0x00,0b1010,1
         },
         {
             // TODO : Implement
+            // Kernel Mode Data
             0xFFFFF,0x0000,0x00,0b0010,1
+        },
+        {
+            // User Mode Code
+        },
+        {
+            // User Mode data
         }
     }
 };
