@@ -9,28 +9,84 @@
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
         {
-            // TODO : Implement
-            // NULL Descriptor
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // NULL DESCRIPTOR
+            .segment_low = 0,
+            .base_low = 0,
+            .base_mid = 0,
+            .type_bit = 0,
+            .non_system = 0,
+            .DPL = 0,
+            .P = 0,
+            .limit = 0,
+            .AVL = 0,
+            .L = 0,
+            .DB = 0,
+            .G = 0,
+            .base_high = 0
         },
         {
-            // TODO : Implement
-            // Kernel Mode Code
-            // segment_low, base_low, base_mid, type_bit, non_system, dpl, p, limit, avl, l, db, g, base_high
-            1, 0, 0, 0xA, 0, 0, 1, 0xFFFFF, 0, 0, 1, 1, 0
+            // KERNEL CODE
+            .segment_low = 0xFFFF,
+            .base_low = 0,
+            .base_mid = 0,
+            .type_bit = 0b1010,
+            .non_system = 1,
+            .DPL = 0,
+            .P = 1,
+            .limit = 0b1111,
+            .AVL = 0,
+            .L = 1,
+            .DB = 1,
+            .G = 1,
+            .base_high = 0
         },
         {
-            // TODO : Implement
-            // Kernel Mode Data
-            // segment_low, base_low, base_mid, type_bit, non_system, dpl, p, limit, avl, l, db, g, base_high
-            1, 0, 0, 0x2, 0, 0, 1, 0xFFFFF, 0, 0, 1, 1, 0
+            // KERNEL DATA
+            .segment_low = 0xFFFF,
+            .base_low = 0,
+            .base_mid = 0,
+            .type_bit = 0b0010,
+            .non_system = 1,
+            .DPL = 0,
+            .P = 1,
+            .limit = 0b1111,
+            .AVL = 0,
+            .L = 0,
+            .DB = 1,
+            .G = 1,
+            .base_high = 0
         },
         {
-            // User Mode Code
-            
+            // USER MODE CODE
+            .segment_low = 0xFFFF,
+            .base_low = 0,
+            .base_mid = 0,
+            .type_bit = 0b1010,
+            .non_system = 1,
+            .DPL = 3,
+            .P = 1,
+            .limit = 0b1111,
+            .AVL = 0,
+            .L = 1,
+            .DB = 1,
+            .G = 1,
+            .base_high = 0
         },
         {
-            // User Mode data
+            // USER MODE DATA
+            .segment_low = 0xFFFF,
+            .base_low = 0,
+            .base_mid = 0,
+            .type_bit = 0b0010,
+            .non_system = 1,
+            .DPL = 3,
+            .P = 1,
+            .limit = 0b1111,
+            .AVL = 0,
+            .L = 0,
+            .DB = 1,
+            .G = 1,
+            .base_high = 0
         }
         
     }
