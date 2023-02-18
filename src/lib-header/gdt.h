@@ -30,7 +30,7 @@ struct SegmentDescriptor {
     uint8_t non_system : 1;
 
     // TODO : Continue GDT definition
-    uint8_t DPL : 1;
+    uint8_t DPL : 2;
     uint8_t P : 1;
     // ini 47
 
