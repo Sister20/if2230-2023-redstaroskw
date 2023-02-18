@@ -11,24 +11,28 @@ struct GlobalDescriptorTable global_descriptor_table = {
         {
             // TODO : Implement
             // NULL Descriptor
-            0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         },
         {
             // TODO : Implement
             // Kernel Mode Code
-            0xFFFFF,0x0000,0x00,0b1010,1
+            // segment_low, base_low, base_mid, type_bit, non_system, dpl, p, limit, avl, l, db, g, base_high
+            1, 0, 0, 0xA, 0, 0, 1, 0xFFFFF, 0, 0, 1, 1, 0
         },
         {
             // TODO : Implement
             // Kernel Mode Data
-            0xFFFFF,0x0000,0x00,0b0010,1
+            // segment_low, base_low, base_mid, type_bit, non_system, dpl, p, limit, avl, l, db, g, base_high
+            1, 0, 0, 0x2, 0, 0, 1, 0xFFFFF, 0, 0, 1, 1, 0
         },
         {
             // User Mode Code
+            
         },
         {
             // User Mode data
         }
+        
     }
 };
 
