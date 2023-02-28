@@ -12,40 +12,74 @@
 //     while (TRUE) b += 1;
 // }
 
+
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     framebuffer_clear();
-    framebuffer_write(3, 8,  'H', 0, 0xF);
-    framebuffer_write(3, 9,  'a', 0, 0xF);
-    framebuffer_write(3, 10, 'i', 0, 0xF);
-    framebuffer_write(3, 11, '!', 0, 0xF);
-    // write hello world!
-    framebuffer_write(4, 8,  'H', 0, 0xF);
-    framebuffer_write(4, 9,  'e', 0, 0xF);
-    framebuffer_write(4, 10, 'l', 0, 0xF);
-    framebuffer_write(4, 11, 'l', 0, 0xF);
-    framebuffer_write(4, 12, 'o', 0, 0xF);
-    framebuffer_write(4, 13, ' ', 0, 0xF);
-    framebuffer_write(4, 14, 'w', 0, 0xF);
-    framebuffer_write(4, 15, 'o', 0, 0xF);
-    framebuffer_write(4, 16, 'r', 0, 0xF);
-    framebuffer_write(4, 17, 'l', 0, 0xF);
-    framebuffer_write(4, 18, 'd', 0, 0xF);
-    framebuffer_write(4, 19, '!', 0, 0xF);
-    // write jason uff uff
-    framebuffer_write(5, 8,  'J', 0, 0xF);
-    framebuffer_write(5, 9,  'a', 0, 0xF);
-    framebuffer_write(5, 10, 's', 0, 0xF);
-    framebuffer_write(5, 11, 'o', 0, 0xF);
-    framebuffer_write(5, 12, 'n', 0, 0xF);
-    framebuffer_write(5, 13, ' ', 0, 0xF);
-    framebuffer_write(5, 14, 'u', 0, 0xF);
-    framebuffer_write(5, 15, 'f', 0, 0xF);
-    framebuffer_write(5, 16, 'f', 0, 0xF);
-    framebuffer_write(5, 17, ' ', 0, 0xF);
-    framebuffer_write(5, 18, 'u', 0, 0xF);
-    framebuffer_write(5, 19, 'f', 0, 0xF);
-    framebuffer_write(5, 20, 'f', 0, 0xF);
-    framebuffer_set_cursor(5, 19);
+    framebuffer_write(4,42,' ',0,0x4);
+    framebuffer_write(5,36,' ',0,0x1);
+    framebuffer_write(5,37,' ',0,0x3);
+    framebuffer_write(5,38,' ',0,0x3);
+    framebuffer_write(5,39,' ',0,0x3);
+    framebuffer_write(5,42,' ',0,0x6);
+    framebuffer_write(5,41,' ',0,0x8);
+
+    framebuffer_write(6,35,' ',0,0x1);
+    framebuffer_write(6,36,' ',0,0x3);
+    framebuffer_write(6,37,' ',0,0x3);
+    framebuffer_write(6,38,' ',0,0x9);
+    framebuffer_write(6,39,' ',0,0x9);
+    framebuffer_write(6,40,' ',0,0x3);
+    
+    framebuffer_write(7,34,' ',0,0x1);
+    framebuffer_write(7,35,' ',0,0x1);
+    framebuffer_write(7,37,' ',0,0x3);
+    framebuffer_write(7,37,' ',0,0x3);
+    framebuffer_write(7,38,' ',0,0x3);
+    framebuffer_write(7,39,' ',0,0x9);
+    framebuffer_write(7,40,' ',0,0x9);
+    framebuffer_write(7,41,' ',0,0x3);
+
+    framebuffer_write(8,34,' ',0,0x1);
+    framebuffer_write(8,35,' ',0,0x1);
+    framebuffer_write(8,36,' ',0,0x7);
+    framebuffer_write(8,37,' ',0,0x3);
+    framebuffer_write(8,38,' ',0,0x3);
+    framebuffer_write(8,39,' ',0,0x3);
+    framebuffer_write(8,40,' ',0,0x9);
+    framebuffer_write(8,41,' ',0,0x3);
+
+    framebuffer_write(9,34,' ',0,0x8);
+    framebuffer_write(9,35,' ',0,0x1);
+    framebuffer_write(9,36,' ',0,0x7);
+    framebuffer_write(9,37,' ',0,0x7);
+    framebuffer_write(9,38,' ',0,0x3);
+    framebuffer_write(9,39,' ',0,0x3);
+    framebuffer_write(9,40,' ',0,0x3);
+    framebuffer_write(9,41,' ',0,0x3);
+
+    framebuffer_write(10,34,' ',0,0x8);
+    framebuffer_write(10,35,' ',0,0x8);
+    framebuffer_write(10,36,' ',0,0x7);
+    framebuffer_write(10,37,' ',0,0x7);
+    framebuffer_write(10,38,' ',0,0x7);
+    framebuffer_write(10,39,' ',0,0x7);
+    framebuffer_write(10,40,' ',0,0x7);
+    framebuffer_write(10,41,' ',0,0x7);
+
+    framebuffer_write(11,35,' ',0,0x8);
+    framebuffer_write(11,36,' ',0,0x8);
+    framebuffer_write(11,37,' ',0,0x8);
+    framebuffer_write(11,38,' ',0,0x7);
+    framebuffer_write(11,39,' ',0,0x7);
+    framebuffer_write(11,40,' ',0,0x7);
+
+    framebuffer_write(12,36,' ',0,0x8);
+    framebuffer_write(12,37,' ',0,0x8);
+    framebuffer_write(12,38,' ',0,0x8);
+    framebuffer_write(12,39,' ',0,0x8);
+
+    // framebuffer_write(15,35,' ',0,)
+    framebuffer_set_cursor(3, 42);
     while (TRUE);
 }
