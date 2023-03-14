@@ -31,17 +31,7 @@ clean:
 kernel:
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
 # TODO: Compile C file with CFLAGS
-	@echo Compiling kernel.c...
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernel.c -o $(OUTPUT_FOLDER)/kernel.o
-	@echo Compiling portio.c...
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/portio.c -o $(OUTPUT_FOLDER)/portio.o
-	@echo Compiling stdmem.c...
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/stdmem.c -o $(OUTPUT_FOLDER)/stdmem.o
-	@echo Compiling framebuffer.c...
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/framebuffer.c -o $(OUTPUT_FOLDER)/framebuffer.o
-	@echo Compiling gdt.c
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/gdt.c -o $(OUTPUT_FOLDER)/gdt.o
-	@echo Linking object files and generate elf32...
+	$(foreach file, $(wildcard $(SOURCE_FOLDER)/*.c), $(CC) $(CFLAGS) $(file) -o $(OUTPUT_FOLDER)/$(notdir $(file:.c=.o));)
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@rm -f bin/*.o
 	
