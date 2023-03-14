@@ -56,7 +56,7 @@ struct IDTGate {
  */
 struct interrupt_descriptor_table{
     struct IDTGate table[IDT_MAX_ENTRY_COUNT];
-};
+} __attribute__((packed));
 
 
 /**
