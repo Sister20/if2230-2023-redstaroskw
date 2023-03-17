@@ -29,17 +29,19 @@ static struct KeyboardDriverState keyboard_state = {FALSE, FALSE, 0, {0}};
 void keyboard_state_activate(void){
     keyboard_state.keyboard_input_on = TRUE;
     keyboard_state.buffer_index = 0;
-    memset(keyboard_state.keyboard_buffer, 0, sizeof(keyboard_state.keyboard_buffer));
+    memset(keyboard_state.keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE);
 }
 
 // Deactivate keyboard ISR / stop listening keyboard interrupt
 void keyboard_state_deactivate(void){
     keyboard_state.keyboard_input_on = FALSE;
+    keyboard_state.buffer_index = 0;
+    memset(keyboard_state.keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE);
 }
 
 // Get keyboard buffer values - @param buf Pointer to char buffer, recommended size at least KEYBOARD_BUFFER_SIZE
 void get_keyboard_buffer(char *buf){
-    memcpy(buf, keyboard_state.keyboard_buffer, sizeof(keyboard_state.keyboard_buffer));
+    memcpy(buf, keyboard_state.keyboard_buffer, KEYBOARD_BUFFER_SIZE);
 }
 
 // Check whether keyboard ISR is active or not - @return Equal with keyboard_input_on value
