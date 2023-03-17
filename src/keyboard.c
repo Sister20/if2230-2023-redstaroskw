@@ -64,7 +64,8 @@ bool is_keyboard_blocking(void){
  * This can be made into blocking input with `while (is_keyboard_blocking());` 
  * after calling `keyboard_state_activate();`
  */
-
+int8_t row = 0;
+// static bool 
 void keyboard_isr(void) {
     if (!keyboard_state.keyboard_input_on) {
         keyboard_state.buffer_index = 0;
@@ -73,23 +74,34 @@ void keyboard_isr(void) {
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
         if(mapped_char == '\b'){
             backspace_pressed = TRUE;
-            framebuffer_write(0, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
-            framebuffer_set_cursor(0,keyboard_state.buffer_index-1);
+            framebuffer_write(row, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
+            framebuffer_set_cursor(row,keyboard_state.buffer_index-1);
             keyboard_state.keyboard_buffer[keyboard_state.buffer_index-1] = ' ';
         }
-        else if (scancode >= 0x02 && scancode <=0x4A) {
+        else if (scancode == 0x1C && !key_pressed)
+        {
+            keyboard_state_deactivate();
+            row++;
+            framebuffer_set_cursor(row,keyboard_state.buffer_index);
             key_pressed = TRUE;
-            framebuffer_write(0, keyboard_state.buffer_index, mapped_char, 0x0F, 0x00);
-            framebuffer_set_cursor(0,keyboard_state.buffer_index+1);
+        }
+        else if (scancode >= 0x02 && scancode <=0x4A && !key_pressed) {
+            key_pressed = TRUE;
+            framebuffer_write(row, keyboard_state.buffer_index, mapped_char, 0x0F, 0x00);
+            framebuffer_set_cursor(row,keyboard_state.buffer_index+1);
             keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = mapped_char;
         }
         else if (scancode >= 0x80 && backspace_pressed){
             backspace_pressed = FALSE;
             keyboard_state.buffer_index--;
         }
-        else if (scancode >= 0x80 && key_pressed) {
+        else if (scancode >= 0x80 && scancode != 0x9C  && key_pressed) {
             key_pressed = FALSE;
             keyboard_state.buffer_index++;
+        }
+        else if(scancode == 0x9C)
+        {
+            key_pressed = FALSE;
         }
     }
     pic_ack(IRQ_KEYBOARD);
