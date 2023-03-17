@@ -1,7 +1,6 @@
 #include "lib-header/idt.h"
 
-struct interrupt_descriptor_table interrupt_descriptor_table = {};
-void *isr_stub_table[ISR_STUB_TABLE_LIMIT] = {};
+struct interrupt_descriptor_table interrupt_descriptor_table;
 struct IDTR _idt_idtr = {
     .limit = sizeof(struct interrupt_descriptor_table) - 1,
     .base = &interrupt_descriptor_table
