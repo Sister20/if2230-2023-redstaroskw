@@ -9,25 +9,30 @@
 #include "lib-header/keyboard.h"
 
 
-// void kernel_setup(void) {
-//     enter_protected_mode(&_gdt_gdtr);
-//     pic_remap();
-//     initialize_idt();
-//     framebuffer_clear();
-//     framebuffer_set_cursor(0, 0);
-//     while (TRUE) 
-//       keyboard_state_activate();
-// }
-
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
-    __asm__("int $0x4");
-    while (TRUE);
+    // int32_t id = 0;
+    while (TRUE) 
+    {
+        keyboard_state_activate();
+        // id++;
+    }
 }
+
+
+// void kernel_setup(void) {
+//     enter_protected_mode(&_gdt_gdtr);
+//     pic_remap();
+//     initialize_idt();
+//     framebuffer_clear();
+//     framebuffer_set_cursor(0, 0);
+//     __asm__("int $0x4");
+//     while (TRUE);
+// }
 
 // void kernel_setup(void) {
 //     uint32_t a;
