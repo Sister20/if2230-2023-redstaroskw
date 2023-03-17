@@ -1,6 +1,8 @@
 # TUGAS BESAR SISTEM OPERASI - IF2230 
 > Milestone 1: Pembuatan Sistem Operasi x86, Booting, Kernel, 32 bit Protected Mode
 
+> Milestone 2: Pembuatan Sistem Operasi x86, Interrupt, Driver, dan Filesystem
+
 ## Anggota Kelompok
 <table>
     <tr>
@@ -41,11 +43,19 @@
 * [Acknowledgements](#acknowledgements)
 
 ## Deskripsi Singkat 
-Dalam tugas ini akan membuat sebuah program Sistem Operasi. Sistem Operasi yang akan dibuat akan berjalan pada arsitektur x86 32 bit yang nanti akan dijalankan dengan emulator QEMU. Pada milestone pertama, hal-hal yang akan dibuat adalah sebagai berikut:
+Dalam tugas ini akan membuat sebuah program Sistem Operasi. Sistem Operasi yang akan dibuat akan berjalan pada arsitektur x86 32 bit yang nanti akan dijalankan dengan emulator QEMU. 
+
+Pada milestone pertama, hal-hal yang akan dibuat adalah sebagai berikut:
 - Membuat build script
 - Menjalankan sistem operasi
 - Membuat output dengan text
 - Memasuki Protected Mode
+
+Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
+- Interrupt & IDT
+- Keyboard driver
+- Disk driver
+- File System
 
 ## Struktur File
 ```bash
