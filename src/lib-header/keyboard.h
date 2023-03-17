@@ -14,8 +14,6 @@
 
 #define KEYBOARD_BUFFER_SIZE   256
 
-static bool key_pressed = FALSE;
-static bool backspace_pressed = FALSE;
 
 /**
  * keyboard_scancode_1_to_ascii_map[256], Convert scancode values that correspond to ASCII printables
