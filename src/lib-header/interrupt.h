@@ -2,6 +2,7 @@
 #define _INTERRUPT_H
 
 #include "stdtype.h"
+#include "keyboard.h"
 
 /* -- PIC constants -- */
 
