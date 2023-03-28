@@ -19,11 +19,11 @@ static struct FAT32DriverState fat32_driver_state;
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'R', 'e', 'd', 'S', 't', 'a', 'r', 'O', 'S', 'K', 'W', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
-    'O', 'S', ' ', 'E', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
+    'O', 'S', ' ', 'S', 'U', 'S', 'A', 'H', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'M', 'a', 'd', 'e', ' ', 'w', 'i', 't', 'h', ' ', '<', '3', ' ', ' ', ' ',  ' ',
     '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '2', '0', '2', '3', '\n',
-    [BLOCK_SIZE-2] = 'O',
-    [BLOCK_SIZE-1] = 'k',
+    [BLOCK_SIZE-2] = ':',
+    [BLOCK_SIZE-1] = '(',
 };
 
 /**
@@ -122,41 +122,46 @@ double ceil(double x) {
  * FAT32 read, read a file from file system.
  *
  * @param request All attribute will be used for read, buffer_size will limit reading count
- * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
- */
-// int8_t read(struct FAT32DriverRequest request)
-// {
-// /*
-// Read akan mencari file yang terletak pada folder parent request.parent_cluster_number. DirectoryTable akan di-iterasi hingga ditemukan request.name dan request.ext yang sama.
-// Jika request.buffer_size kurang dari entry.filesize, kembalikan error. Jika flag subdirectory pada entry.attribute menyala (bit subdirectory bernilai 1), kembalikan error.
-// Jika kondisi sudah valid, lakukan pembacaan hingga semua cluster terbaca dan dimasukkan ke request.buf.
-// Untuk read_directory memiliki cara kerja yang sama, tetapi hanya menerima target yaitu sebuah folder.
-//  request.ext tidak digunakan pada read_directory. read_directory akan membaca DirectoryTable yang ada pada disk dan memasukkannya pada request.buf.
-// */
-//     struct FAT32DirectoryEntry *t = request.buf;
-//     if (request.buffer_size<t->filesize)
-//     {
-//         return 2;
-//     }
-//     else if (t->attribute == 1)
-//     {
-//         return 1; // ini juga
-//     }
-//     else
-//     {
-//         for (int i = 0 ; i < 128 ; i ++)
-//         {
-//             if ()
-//             {
-//                 request.buf = &fat32_driver_state.dir_table_buf.table[i];
-//                 read(request);
-//                 return 0;
-//             }
-//         }
-//         return 2;
-//     }
-// }
-
+//  * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
+//  */
+int8_t read(struct FAT32DriverRequest request)
+{
+/*
+Read akan mencari file yang terletak pada folder parent request.parent_cluster_number. DirectoryTable akan di-iterasi hingga ditemukan request.name dan request.ext yang sama.
+Jika request.buffer_size kurang dari entry.filesize, kembalikan error. Jika flag subdirectory pada entry.attribute menyala (bit subdirectory bernilai 1), kembalikan error.
+Jika kondisi sudah valid, lakukan pembacaan hingga semua cluster terbaca dan dimasukkan ke request.buf.
+Untuk read_directory memiliki cara kerja yang sama, tetapi hanya menerima target yaitu sebuah folder.
+ request.ext tidak digunakan pada read_directory. read_directory akan membaca DirectoryTable yang ada pada disk dan memasukkannya pada request.buf.
+*/
+    struct FAT32DirectoryEntry *t = request.buf;
+    if (request.buffer_size<t->filesize)
+    {
+        return 2;
+    }
+    else if (t->attribute == 1)
+    {
+        return 1; // ini juga
+    }
+    else
+    {
+        for (int i = 0 ; i < 128 ; i ++)
+        {
+            if (fat32_driver_state.dir_table_buf.table[i].name[0] == 0)
+            {
+                return 3;
+            }
+            else if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
+            {
+                uint32_t cluster = (fat32_driver_state.dir_table_buf.table[i].cluster_high << 16) | fat32_driver_state.dir_table_buf.table[i].cluster_low;
+                uint32_t cluster_count = ceil((double)fat32_driver_state.dir_table_buf.table[i].filesize / (double)CLUSTER_SIZE);
+                read_clusters(request.buf, cluster, cluster_count);
+                return 0;
+            }
+        }
+        return 2;
+    }
+    return -1;
+}
 
 /**
  * FAT32 write, write a file or folder to file system.
@@ -193,22 +198,26 @@ int8_t write(struct FAT32DriverRequest request)
     }
 
     // Cek apakah request.name dan request.ext sudah ada atau belum
-    for (int i = 0 ; i < 128 ; i++)
-    {
-        if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
-        {
-            return 1;
-        }
-        else if (memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
-        {
-            return 1;
-        }
-    }
+    // for (int i = 0 ; i < 128 ; i++)
+    // {
+    //     if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
+    //     {
+    //         return 1;
+    //     }
+    //     else if (memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
+    //     {
+    //         return 1;
+    //     }
+    // }
 
     if (request.buffer_size == 0)
     {
         // membuat sub-direktori pada folder parent request.parent_cluster_number dengan nama request.name.   
         write_clusters(request.buf, index, 1);
+
+        // memberi nama request.name
+        memcpy(fat32_driver_state.dir_table_buf.table[index].name, request.name, 8);
+
         return 0;
     }
     
@@ -219,6 +228,7 @@ int8_t write(struct FAT32DriverRequest request)
         {
             write_clusters(request.buf, index+1+i, 1);
         }
+
 
         // Parent folder DirectoryTable akan ditambahkan DirectoryEntry baru dengan nama yang sesuai dari entry.user_attribute = UATTR_NOT_EMPTY. Sesuaikan flags pada entry.attribute.
         fat32_driver_state.dir_table_buf.table[0].user_attribute = UATTR_NOT_EMPTY;
