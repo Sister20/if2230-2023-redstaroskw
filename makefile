@@ -17,11 +17,11 @@ CFLAGS        = $(DEBUG_CFLAG) $(WARNING_CFLAG) $(STRIP_CFLAG) -m32 -c -I$(SOURC
 AFLAGS        = -f elf32 -g -F dwarf
 LFLAGS        = -T $(SOURCE_FOLDER)/linker.ld -melf_i386
 IFLAGS		  = -R -b boot/grub/grub1 -no-emul-boot -boot-load-size 4 -A os -input-charset utf8 -quiet -boot-info-table
-DISK_NAME      = storage
-
+DISK_NAME     = storage
+DISK_LOAD	  = -drive file=bin/storage.bin,format=raw,if=ide,index=0,media=disk -cdrom 
 
 run: all
-	@qemu-system-i386 -s -drive file=bin/storage.bin,format=raw,if=ide,index=0,media=disk -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
+	@qemu-system-i386 -s $(DISK_LOAD) $(OUTPUT_FOLDER)/$(ISO_NAME).iso
 
 disk:
 	@qemu-img create -f raw $(OUTPUT_FOLDER)/$(DISK_NAME).bin 4M
@@ -31,7 +31,7 @@ all: build
 build: iso
 
 clean:
-	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
+	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel $(OUTPUT_FOLDER)/*o $(OUTPUT_FOLDER)/*.iso $(OUTPUT_FOLDER)/*.bin
 
 kernel:disk
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
