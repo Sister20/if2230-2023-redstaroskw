@@ -201,8 +201,8 @@ int8_t write(struct FAT32DriverRequest request)
         index++;
     }
     fat32_driver_state.fat_table.cluster_map[index] = FAT32_FAT_END_OF_FILE;
-    // if(is_dir_table_valid())
-    // {
+    if(is_dir_table_valid())
+    {
         // Cek apakah request.name dan request.ext sudah ada atau belum
         for (uint32_t i = 0 ; i < 64 ; i++)
         {
@@ -254,7 +254,8 @@ int8_t write(struct FAT32DriverRequest request)
                 {
                     tempindex++;
                 }
-                while(fat32_driver_state.fat_table.cluster_map[nextIndex] != 0 && nextIndex != tempindex)
+                nextIndex = tempindex;
+                while(fat32_driver_state.fat_table.cluster_map[nextIndex] != 0 && nextIndex == tempindex)
                 {
                     nextIndex++;
                 }
@@ -272,7 +273,7 @@ int8_t write(struct FAT32DriverRequest request)
             }
             return 0;
         }
-    // }
+    }
     return -1;
 }
 
