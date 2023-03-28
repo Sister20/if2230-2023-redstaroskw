@@ -50,7 +50,7 @@ void main_interrupt_handler(
     switch (int_number) {
         case PIC1_OFFSET + IRQ_KEYBOARD - 1:
             while (TRUE){
-                keyboard_isr();
+                keyboard_state_activate();
             }
         default:
             break;

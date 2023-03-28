@@ -14,8 +14,8 @@
 //     },
 // };
 
-struct FAT32DriverState fat32_driver_state;
-
+static struct FAT32DriverState fat32_driver_state;
+static struct FAT32DirectoryTable dir_table;
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'R', 'e', 'd', 'S', 't', 'a', 'r', 'O', 'S', 'K', 'W', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -62,7 +62,7 @@ void create_fat32(void){
 
     fat32_driver_state.fat_table.cluster_map[0] = CLUSTER_0_VALUE;
     fat32_driver_state.fat_table.cluster_map[1] = CLUSTER_1_VALUE;
-    write_clusters(fat32_driver_state.fat_table.cluster_map, 1, 1);
+    write_clusters(&fat32_driver_state.fat_table.cluster_map, 1, 1);
 
     struct FAT32DirectoryTable root_dir_table = {0};
     init_directory_table(&root_dir_table, "ROOT", 1);
@@ -78,7 +78,7 @@ void create_fat32(void){
  * @param cluster_count  Cluster count to read, due limitation of read_blocks block_count 255 => max cluster_count = 63
  */
 void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
-    read_blocks(ptr, cluster_number * CLUSTER_SIZE, cluster_count * CLUSTER_SIZE);
+    read_blocks(ptr, cluster_number * 4, cluster_count * CLUSTER_BLOCK_COUNT);
 }
 
 /**
@@ -90,7 +90,7 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count){
  * @param cluster_count  Cluster count to write, due limitation of write_blocks block_count 255 => max cluster_count = 63
  */
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count){
-    write_blocks(ptr, cluster_number * CLUSTER_SIZE, cluster_count * CLUSTER_SIZE);
+    write_blocks(ptr, cluster_number * 4, cluster_count * CLUSTER_BLOCK_COUNT);
 }
 
 /**
@@ -115,4 +115,41 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
     }
     dir_table->table[2].cluster_high = 0;
     dir_table->table[2].cluster_low = 2;
+}
+
+/**
+ * FAT32 read, read a file from file system.
+ *
+ * @param request All attribute will be used for read, buffer_size will limit reading count
+ * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
+ */
+int8_t read(struct FAT32DriverRequest request)
+{
+    int8_t err;
+    struct FAT32DirectoryEntry *t = request.buf;
+    if (request.buffer_size<t->filesize)
+    {
+        err = 1; // ini gatau return apa antara 1/-1
+    }
+    else if (t->attribute == 1)
+    {
+        err = -1; // ini juga
+    }
+    else
+    {
+        if (request.buf == FAT32_FAT_END_OF_FILE)
+        {
+            return 0;
+        }
+        for (int i = 0 ; i < 128 ; i ++)
+        {
+            if (dir_table.table[i].name == t->name && dir_table.table[i].ext == t->ext)
+            {
+                request.buf = &dir_table.table[i];
+                read(request);
+                return 0;
+            }
+        }
+        return 2;
+    }
 }
