@@ -15,7 +15,7 @@
 // };
 
 static struct FAT32DriverState fat32_driver_state;
-static struct FAT32DirectoryTable dir_table;
+
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'R', 'e', 'd', 'S', 't', 'a', 'r', 'O', 'S', 'K', 'W', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -65,7 +65,7 @@ void create_fat32(void){
     write_clusters(&fat32_driver_state.fat_table.cluster_map, 1, 1);
 
     struct FAT32DirectoryTable root_dir_table = {0};
-    init_directory_table(&root_dir_table, "ROOT", 1);
+    init_directory_table(&root_dir_table, "", 1);
     write_clusters(&root_dir_table, 2, 1);
 }
 
@@ -101,13 +101,10 @@ void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_co
  * @param parent_dir_cluster Parent directory cluster number
  */
 void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster) {
-    dir_table->table[0].name[0] = '.';
-    dir_table->table[0].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+    dir_table->table[0].cluster_high = (uint16_t)(parent_dir_cluster << 16);
     dir_table->table[0].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
 
-    dir_table->table[1].name[0] = '.';
-    dir_table->table[1].name[1] = '.';
-    dir_table->table[1].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+    dir_table->table[1].cluster_high = (uint16_t)(parent_dir_cluster << 16);
     dir_table->table[1].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
 
     for (uint8_t i = 0; i < 8; i++) {
@@ -117,39 +114,63 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
     dir_table->table[2].cluster_low = 2;
 }
 
+// /**
+//  * FAT32 read, read a file from file system.
+//  *
+//  * @param request All attribute will be used for read, buffer_size will limit reading count
+//  * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
+//  */
+// int8_t read(struct FAT32DriverRequest request)
+// {
+//     struct FAT32DirectoryEntry *t = request.buf;
+//     if (request.buffer_size<t->filesize)
+//     {
+//         return 1;
+//     }
+//     else if (t->attribute == 1)
+//     {
+//         return -1; // ini juga
+//     }
+//     else
+//     {
+//         for (int i = 0 ; i < 128 ; i ++)
+//         {
+//             if ()
+//             {
+//                 request.buf = &fat32_driver_state.dir_table_buf.table[i];
+//                 read(request);
+//                 return 0;
+//             }
+//         }
+//         return 2;
+//     }
+// }
+
+double ceil(double x) {
+    int intPart = (int)x;
+    return (x > intPart) ? (double)(intPart + 1) : (double)intPart;
+}
+
 /**
- * FAT32 read, read a file from file system.
+ * FAT32 write, write a file or folder to file system.
  *
- * @param request All attribute will be used for read, buffer_size will limit reading count
- * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
+ * @param request All attribute will be used for write, buffer_size == 0 then create a folder / directory
+ * @return Error code: 0 success - 1 file/folder already exist - 2 invalid parent cluster - -1 unknown
  */
-int8_t read(struct FAT32DriverRequest request)
+int8_t write(struct FAT32DriverRequest request)
 {
-    int8_t err;
-    struct FAT32DirectoryEntry *t = request.buf;
-    if (request.buffer_size<t->filesize)
-    {
-        err = 1; // ini gatau return apa antara 1/-1
-    }
-    else if (t->attribute == 1)
-    {
-        err = -1; // ini juga
-    }
-    else
-    {
-        if (request.buf == FAT32_FAT_END_OF_FILE)
-        {
-            return 0;
-        }
-        for (int i = 0 ; i < 128 ; i ++)
-        {
-            if (dir_table.table[i].name == t->name && dir_table.table[i].ext == t->ext)
-            {
-                request.buf = &dir_table.table[i];
-                read(request);
-                return 0;
-            }
-        }
-        return 2;
-    }
+    // if (request.buffer_size == 0)
+    // {
+        write_clusters(request.buf,4,1);
+        return 0;
+    // }
+    // else
+    // {
+    //     int loop = ceil(request.buffer_size/CLUSTER_SIZE);
+    //     for (int i = 0 ; i < loop ; i ++)
+    //     {
+    //         write_clusters(request.buf, 5+i, 1);
+    //     }
+    //     return 0;
+    // }
 }
