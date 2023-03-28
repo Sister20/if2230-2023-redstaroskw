@@ -74,6 +74,7 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ┃ ┣ ┗ 📜stdtype.h
  ┃ ┣ 📜framebuffer.c
  ┃ ┣ 📜gdt.c
+ ┃ ┣ 📜fat32.c
  ┃ ┣ 📜kernel.c
  ┃ ┣ 📜kernel_loader.s
  ┃ ┣ 📜linker.ld
