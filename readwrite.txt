@@ -1,0 +1,92 @@
+/**
+ * FAT32 write, write a file or folder to file system.
+ *
+ * @param request All attribute will be used for write, buffer_size == 0 then create a folder / directory
+ * @return Error code: 0 success - 1 file/folder already exist - 2 invalid parent cluster - -1 unknown
+ */
+int8_t write(struct FAT32DriverRequest request){
+    struct FAT32DirectoryEntry *t = request.buf;
+    if (request.buffer_size == 0)
+    {
+        for (int i = 0 ; i < 128 ; i ++)
+        {
+            if (dir_table.table[i].name == t->name && dir_table.table[i].ext == t->ext)
+            {
+                return 1;
+            }
+        }
+        if (t->cluster_high == 0 && t->cluster_low == 0)
+        {
+            return 2;
+        }
+        else
+        {
+            for (int i = 0 ; i < 128 ; i ++)
+            {
+                if (dir_table.table[i].name == 0 && dir_table.table[i].ext == 0)
+                {
+                    dir_table.table[i] = *t;
+                    return 0;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0 ; i < 128 ; i ++)
+        {
+            if (dir_table.table[i].name == t->name && dir_table.table[i].ext == t->ext)
+            {
+                return 1;
+            }
+        }
+        for (int i = 0 ; i < 128 ; i ++)
+        {
+            if (dir_table.table[i].name == 0 && dir_table.table[i].ext == 0)
+            {
+                dir_table.table[i] = *t;
+                return 0;
+            }
+        }
+    }
+    return -1;
+}
+
+
+/**
+ * FAT32 delete, delete a file or empty directory (only 1 DirectoryEntry) in file system.
+ *
+ * @param request buf and buffer_size is unused
+ * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
+ */
+int8_t delete(struct FAT32DriverRequest request){
+    struct FAT32DirectoryEntry *t = request.buf;
+    for (int i = 0 ; i < 128 ; i ++)
+    {
+        if (dir_table.table[i].name == t->name && dir_table.table[i].ext == t->ext)
+        {
+            if (dir_table.table[i].attribute == 1)
+            {
+                for (int j = 0 ; j < 128 ; j ++)
+                {6
+                    if (dir_table.table[j].cluster_high == dir_table.table[i].cluster_high && dir_table.table[j].cluster_low == dir_table.table[i].cluster_low)
+                    {
+                        return 2;
+                    }
+                }
+            }
+            for (int i = 0 ; i < 8 ; i ++)
+            {
+                dir_table.table[i].name[i] = 0;
+            }
+            for (int i = 0 ; i < 3 ; i ++)
+            {
+
+                dir_table.table[i].ext[i] = 0;
+            }
+
+            return 0;
+        }
+    }
+    return 1;
+}
