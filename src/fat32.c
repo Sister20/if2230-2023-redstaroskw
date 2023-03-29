@@ -113,7 +113,7 @@ void initialize_filesystem_fat32(void)
     }
     else
     {
-        read_clusters(fat32_driver_state.fat_table.cluster_map, 1, 1);
+        read_clusters(&fat32_driver_state.fat_table.cluster_map, 1, 1);
     }
 }
 
@@ -425,7 +425,6 @@ int8_t delete(struct FAT32DriverRequest request)
     // Entry khusus (indeks ke 0, pointer ke parent folder, dengan nama direktori sekarang) yang disebutkan pada desain file system, tidak dapat dihapus. Abaikan request yang ditemukan pada indeks ke 0 pada DirectoryTable.
     // Untuk folder, delete akan menghapus DirectoryTable hanya dan hanya jika tepat memiliki 1 entry (entry khusus) dan bukan root directory. Jika masih ada entry lain, kembalikan error.
 
-    // entry khusus
     if (request.parent_cluster_number == 0)
     {
         return 2;
@@ -434,31 +433,53 @@ int8_t delete(struct FAT32DriverRequest request)
     {
         // mencari file (request.name, request.ext, dan request.parent_cluster_number menunjuk kepada DirectoryEntry file yang valid )
         read_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
-        for (int i = 0; i < 128; i++)
-        {
-            if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
-            {
-                if (memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
-                {
-                    if (fat32_driver_state.dir_table_buf.table[i].cluster_low == request.parent_cluster_number)
-                    {
-                        // menghapus semua linked list clusters yang ada pada FileAllocationTable
-                        int index = fat32_driver_state.dir_table_buf.table[i].cluster_low;
-                        while (fat32_driver_state.fat_table.cluster_map[index] != FAT32_FAT_END_OF_FILE)
-                        {
-                            fat32_driver_state.fat_table.cluster_map[index] = 0;
-                            index = fat32_driver_state.fat_table.cluster_map[index];
-                        }
-                        fat32_driver_state.fat_table.cluster_map[index] = 0;
 
-                        // menghapus DirectoryTable
-                        fat32_driver_state.dir_table_buf.table[i].name[0] = 0xE5;
-                        write_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
-                        return 0;
-                    }
-                }
+        uint16_t hi, lo, idxDir;
+        for(uint32_t i = 0; i < (CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)); i++)
+        {
+            /* Cari di dir_table_buf, untuk c*/
+            if( memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 )
+              {
+                hi = fat32_driver_state.dir_table_buf.table[i].cluster_high;
+                lo = fat32_driver_state.dir_table_buf.table[i].cluster_low;
+                idxDir = i;
+                break;
+              }
+        }
+
+        /* Cari di FAT32 */
+        /* Ambil dulu idx-nya */
+        uint32_t idx = hi << 16 | lo;
+
+        if(request.buffer_size == 0){
+            /* Folder */
+            fat32_driver_state.fat_table.cluster_map[idx] = 0;
+            write_clusters(&fat32_driver_state.fat_table, 1, 1);
+        }else{
+            /* Buat file */
+            while(fat32_driver_state.fat_table.cluster_map[idx] != FAT32_FAT_END_OF_FILE)
+            {
+                idx = fat32_driver_state.fat_table.cluster_map[idx];
+                fat32_driver_state.fat_table.cluster_map[idx] = 0;
+            }
+
+            fat32_driver_state.fat_table.cluster_map[idx] = 0;
+            write_clusters(&fat32_driver_state.fat_table, 1, 1);
+        }
+
+        struct FAT32DirectoryTable new;
+
+        for (uint32_t i = 0; i < (CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)); i++)
+        {
+            if(i != idxDir){
+                memcpy(&new.table[i],&fat32_driver_state.dir_table_buf.table[i], sizeof(fat32_driver_state.dir_table_buf.table[i]));
             }
         }
+
+        memcpy(&fat32_driver_state.dir_table_buf, &new, sizeof(new));
+        
+        write_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
+        
     }
     return -1;
 }
