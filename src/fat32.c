@@ -459,8 +459,9 @@ int8_t delete(struct FAT32DriverRequest request)
             /* Buat file */
             while(fat32_driver_state.fat_table.cluster_map[idx] != FAT32_FAT_END_OF_FILE)
             {
+                uint32_t temp = idx;
                 idx = fat32_driver_state.fat_table.cluster_map[idx];
-                fat32_driver_state.fat_table.cluster_map[idx] = 0;
+                fat32_driver_state.fat_table.cluster_map[temp] = 0;
             }
 
             fat32_driver_state.fat_table.cluster_map[idx] = 0;
