@@ -264,7 +264,7 @@ int8_t read(struct FAT32DriverRequest request)
     int idx = -1;
     for (uint32_t i = 0; i < 64; i++)
     {
-        if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
+        if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
         {
             idx = i;
             break;
@@ -278,16 +278,16 @@ int8_t read(struct FAT32DriverRequest request)
     }
 
     // Inisialisasi entry
-    struct FAT32DirectoryEntry entry = fat32_driver_state.dir_table_buf.table[idx];
+    // fat32_driver_state.dir_table_buf.table[idx];
 
     // Error jika buffer size < filesize
-    if (request.buffer_size < entry.filesize)
+    if (request.buffer_size < fat32_driver_state.dir_table_buf.table[idx].filesize)
     {
         return 2;
     }
 
     // Error jika flag subdirectory menyala
-    else if (entry.attribute != ATTR_SUBDIRECTORY)
+    else if (fat32_driver_state.dir_table_buf.table[idx].attribute == 1)
     {
         return 1;
     }
@@ -295,13 +295,29 @@ int8_t read(struct FAT32DriverRequest request)
     // Kondisi Valid
     else
     {
-        // pembacaan hingga semua cluster terbaca dan dimasukkan ke request.buf.
-        uint32_t cluster_number = (entry.cluster_high << 16) | entry.cluster_low;
-        uint32_t cluster_count = ceil((double)entry.filesize / (double)CLUSTER_SIZE);
-        read_clusters(request.buf, cluster_number, cluster_count);
+        uint32_t cluster_count = fat32_driver_state.dir_table_buf.table[idx].filesize / CLUSTER_SIZE;
+        if (cluster_count * CLUSTER_SIZE < fat32_driver_state.dir_table_buf.table[idx].filesize)
+        {
+            cluster_count++;
+        }
+        else
+        {
+            uint32_t cluster_number = (fat32_driver_state.dir_table_buf.table[idx].cluster_high << 16) | fat32_driver_state.dir_table_buf.table[idx].cluster_low;
+            for (uint32_t j = 0 ; j < cluster_count; j++)
+            {
+                if (j == 0)
+                {
+                    read_clusters(request.buf, cluster_number, 1);
+                }
+                else
+                {
+                    read_clusters(request.buf + (j * CLUSTER_SIZE), cluster_number, 1);
+                    cluster_number = fat32_driver_state.fat_table.cluster_map[cluster_number];
+                }
+            }
+        }
         return 0;
     }
-
     return -1; // Unknown
 }
 
