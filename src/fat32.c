@@ -439,13 +439,28 @@ int8_t delete(struct FAT32DriverRequest request)
         {
             /* Cari di dir_table_buf, untuk c*/
             if( memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 )
-              {
+            {
                 hi = fat32_driver_state.dir_table_buf.table[i].cluster_high;
                 lo = fat32_driver_state.dir_table_buf.table[i].cluster_low;
                 idxDir = i;
                 break;
-              }
+            }
         }
+
+        struct FAT32DriverState check;
+        read_clusters(&check.dir_table_buf, idxDir, 1);
+
+        int counter = 0;
+        for(int i = 0 ; i < 64; i++)
+        {
+            if(check.dir_table_buf.table[i].user_attribute == UATTR_NOT_EMPTY)
+            {
+                counter++;
+            }
+        }
+
+        if(counter <= 1)
+        {
 
         /* Cari di FAT32 */
         /* Ambil dulu idx-nya */
@@ -480,7 +495,9 @@ int8_t delete(struct FAT32DriverRequest request)
         memcpy(&fat32_driver_state.dir_table_buf, &new, sizeof(new));
         
         write_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
-        
+        }else{
+            return 2;
+        }
     }
     return -1;
 }
