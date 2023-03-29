@@ -37,12 +37,14 @@ void kernel_setup(void) {
     memcpy(request.name, "kano1\0\0\0", 8);
     write(request);  // Create folder "kano1"
     memcpy(request.name, "ikanaide", 8);
-    delete(request); // Delete first folder, thus creating hole in FS
+    // delete(request); // Delete first folder, thus creating hole in FS
 
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
 
+    memcpy(request.name, "haihaiha", 8);
+    write(request);  // Create fragmented file "daijoubu"
     // struct ClusterBuffer readcbuf;
     // read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
     // // If read properly, readcbuf should filled with 'a'
