@@ -147,7 +147,7 @@ void create_fat32(void)
     write_clusters(&fat32_driver_state.fat_table.cluster_map, 1, 1);
 
     struct FAT32DirectoryTable root_dir_table = {0};
-    init_directory_table(&root_dir_table, "ROOT", 2);
+    init_directory_table(&root_dir_table, "ROOT\0\0\0", 2);
     write_clusters(&root_dir_table, 2, 1);
 }
 
@@ -308,6 +308,7 @@ int8_t read(struct FAT32DriverRequest request)
                 if (j == 0)
                 {
                     read_clusters(request.buf, cluster_number, 1);
+                    cluster_number = fat32_driver_state.fat_table.cluster_map[cluster_number];
                 }
                 else
                 {
@@ -392,7 +393,7 @@ int8_t write(struct FAT32DriverRequest request)
                         //input new_entry to table
                         .attribute = ATTR_SUBDIRECTORY,
                         .user_attribute = UATTR_NOT_EMPTY,
-                        .filesize = 0,
+                        .filesize = request.buffer_size,
                         .cluster_high = request.parent_cluster_number >> 16 ,
                         .cluster_low = request.parent_cluster_number & 0xFFFF,
                     }
@@ -434,7 +435,7 @@ int8_t write(struct FAT32DriverRequest request)
                     struct FAT32DirectoryEntry new_entry = {
                     .attribute = ATTR_SUBDIRECTORY,
                     .user_attribute = UATTR_NOT_EMPTY,
-                    .filesize = 0,
+                    .filesize = request.buffer_size,
                     .cluster_high = (tempindex >> 16) & 0xFFFF,
                     .cluster_low = tempindex & 0xFFFF,
                     };
