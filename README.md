@@ -66,23 +66,34 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ┃ ┗ 📜grub1
  ┣ 📂src
  ┃ ┣ 📂lib-header
- ┃ ┣ ┣ 📜framebuffer.h
- ┃ ┣ ┣ 📜gdt.h
- ┃ ┣ ┣ 📜kernel_loader.h
- ┃ ┣ ┣ 📜portio.h
- ┃ ┣ ┣ 📜stdmem.h
- ┃ ┣ ┗ 📜stdtype.h
+ ┃ ┃ ┣ 📜disk.h
+ ┃ ┃ ┣ 📜fat32.h
+ ┃ ┃ ┣ 📜framebuffer.h
+ ┃ ┃ ┣ 📜gdt.h
+ ┃ ┃ ┣ 📜idt.h
+ ┃ ┃ ┣ 📜interrupt.h
+ ┃ ┃ ┣ 📜kernel_loader.h
+ ┃ ┃ ┣ 📜keyboard.h
+ ┃ ┃ ┣ 📜portio.h
+ ┃ ┃ ┣ 📜stdmem.h
+ ┃ ┃ ┗ 📜stdtype.h
+ ┃ ┣ 📜disk.c 
+ ┃ ┣ 📜fat32.c
  ┃ ┣ 📜framebuffer.c
  ┃ ┣ 📜gdt.c
- ┃ ┣ 📜fat32.c
+ ┃ ┣ 📜idt.c
+ ┃ ┣ 📜interrupt.c
+ ┃ ┣ 📜intsetup.s
  ┃ ┣ 📜kernel.c
  ┃ ┣ 📜kernel_loader.s
+ ┃ ┣ 📜keyboard.c
  ┃ ┣ 📜linker.ld
  ┃ ┣ 📜menu.lst
  ┃ ┣ 📜portio.c
  ┃ ┗ 📜stdmem.c
  ┣ 📜README.md
- ┗ 📜makefile
+ ┣ 📜makefile
+ ┗ 📜readwrite.txt
  ```
  
  ## Requirements
