@@ -389,7 +389,7 @@ int8_t write(struct FAT32DriverRequest request)
                 }
                 nextIndex = tempindex+1;
                 //cari yang kosong kedua
-                while (fat32_driver_state.fat_table.cluster_map[nextIndex] != 0 && nextIndex == tempindex)
+                while (fat32_driver_state.fat_table.cluster_map[nextIndex] != 0)
                 {
                     nextIndex++;
                 }
