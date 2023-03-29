@@ -93,7 +93,25 @@ void keyboard_isr(void) {
         }
         else if (scancode >= 0x80 && backspace_pressed){
             backspace_pressed = FALSE;
-            keyboard_state.buffer_index--;
+            if(keyboard_state.buffer_index != 0)
+                keyboard_state.buffer_index--;
+
+            /* Supaya cursor naik 
+             * Cek apakah di kolom ke-0 dan bukan di row ke 0
+             * Jika sudah di kolom ke-0 naikkan rownya
+             * Kalau sudah naik, while sampai ketemu karakter
+             * Set cursor di tempat tsb.
+             */
+            if(keyboard_state.buffer_index == 0 && row != 0){
+                row--;
+                int setCol = keyboard_state.buffer_index;
+                while(keyboard_state.keyboard_buffer[keyboard_state.buffer_index] > 0x1B)
+                {
+                    setCol--;
+                }
+                /* Ini dia masih gak mau ke char yang gak kosong */
+                framebuffer_set_cursor(row, setCol);
+            }
         }
         else if (scancode >= 0x80 && scancode != 0x9C  && key_pressed) {
             key_pressed = FALSE;
