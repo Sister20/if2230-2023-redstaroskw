@@ -217,28 +217,7 @@ bool is_dir_table_valid(void)
 /* -- CRUD Operation -- */
 
 
-/**
- *  FAT32 Folder / Directory read
- *
- * @param request buf point to struct FAT32DirectoryTable,
- *                name is directory name,
- *                ext is unused,
- *                parent_cluster_number is target directory table to read,
- *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
- * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
- */
-int8_t read_directory(struct FAT32DriverRequest request)
-{
-    if (request.buffer_size != sizeof(struct FAT32DirectoryTable))
-    {
-        return 2;
-    }
-    else
-    {
 
-    }
-    return -1;
-}
 
 
 /**
@@ -322,6 +301,56 @@ int8_t read(struct FAT32DriverRequest request)
     return -1; // Unknown
 }
 
+/**
+ *  FAT32 Folder / Directory read
+ *
+ * @param request buf point to struct FAT32DirectoryTable,
+ *                name is directory name,
+ *                ext is unused,
+ *                parent_cluster_number is target directory table to read,
+ *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
+ * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
+ */
+int8_t read_directory(struct FAT32DriverRequest request)
+{
+    read_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
+    int idx = -1;
+    for (uint32_t i = 0; i < 64; i++)
+    {
+        if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
+        {
+            idx = i;
+            break;
+        }
+    }
+    // Not Found
+    if (idx == -1)
+    {
+        return 3;
+    }
+
+    // Inisialisasi entry
+    // fat32_driver_state.dir_table_buf.table[idx];
+
+    // Error jika buffer size < filesize
+    if (request.buffer_size < fat32_driver_state.dir_table_buf.table[idx].filesize)
+    {
+        return 2;
+    }
+
+    // Error jika flag subdirectory menyala
+    else if (fat32_driver_state.dir_table_buf.table[idx].attribute == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        uint32_t entry = fat32_driver_state.dir_table_buf.table[idx].cluster_low | fat32_driver_state.dir_table_buf.table[idx].cluster_high << 16;
+        read_clusters(request.buf,entry, 1);
+        return 0;
+    }
+    return -1;
+}
 /**
  * FAT32 write, write a file or folder to file system.
  *

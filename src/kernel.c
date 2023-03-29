@@ -58,13 +58,13 @@ void kernel_setup(void) {
 
     struct FAT32DriverRequest request2 = {
         .buf                   = fff,
-        .name                  = "daijoubu",
+        .name                  = "ikanaide",
         .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0,
     };
-    request2.buffer_size = 5*CLUSTER_SIZE;
-    read(request2);   // Success read on file "daijoubu"
+    // request2.buffer_size = 5*CLUSTER_SIZE;
+    read_directory(request2);   // Success read on file "daijoubu"
 
     while (TRUE)
     {
