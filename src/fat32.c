@@ -213,6 +213,34 @@ bool is_dir_table_valid(void)
     return fat32_driver_state.dir_table_buf.table[0].user_attribute == UATTR_NOT_EMPTY;
 }
 
+
+/* -- CRUD Operation -- */
+
+
+/**
+ *  FAT32 Folder / Directory read
+ *
+ * @param request buf point to struct FAT32DirectoryTable,
+ *                name is directory name,
+ *                ext is unused,
+ *                parent_cluster_number is target directory table to read,
+ *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
+ * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
+ */
+int8_t read_directory(struct FAT32DriverRequest request)
+{
+    if (request.buffer_size != sizeof(struct FAT32DirectoryTable))
+    {
+        return 2;
+    }
+    else
+    {
+
+    }
+    return -1;
+}
+
+
 /**
  * FAT32 read, read a file from file system.
  *
@@ -228,34 +256,53 @@ int8_t read(struct FAT32DriverRequest request)
     Untuk read_directory memiliki cara kerja yang sama, tetapi hanya menerima target yaitu sebuah folder.
      request.ext tidak digunakan pada read_directory. read_directory akan membaca DirectoryTable yang ada pada disk dan memasukkannya pada request.buf.
     */
-    struct FAT32DirectoryEntry *t = request.buf;
-    if (request.buffer_size < t->filesize)
+
+    // Membaca DirectoryTable
+    read_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
+    
+    // Mencari name dan ext yang sama
+    int idx = -1;
+    for (uint32_t i = 0; i < 64; i++)
+    {
+        if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0)
+        {
+            idx = i;
+            break;
+        }
+    }
+    
+    // Not Found
+    if (idx == -1)
+    {
+        return 3;
+    }
+
+    // Inisialisasi entry
+    struct FAT32DirectoryEntry entry = fat32_driver_state.dir_table_buf.table[idx];
+
+    // Error jika buffer size < filesize
+    if (request.buffer_size < entry.filesize)
     {
         return 2;
     }
-    else if (t->attribute == 1)
+
+    // Error jika flag subdirectory menyala
+    else if (entry.attribute != ATTR_SUBDIRECTORY)
     {
-        return 1; // ini juga
+        return 1;
     }
+
+    // Kondisi Valid
     else
     {
-        for (int i = 0; i < 128; i++)
-        {
-            if (fat32_driver_state.dir_table_buf.table[i].name[0] == 0)
-            {
-                return 3;
-            }
-            else if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
-            {
-                uint32_t cluster = (fat32_driver_state.dir_table_buf.table[i].cluster_high << 16) | fat32_driver_state.dir_table_buf.table[i].cluster_low;
-                uint32_t cluster_count = ceil((double)fat32_driver_state.dir_table_buf.table[i].filesize / (double)CLUSTER_SIZE);
-                read_clusters(request.buf, cluster, cluster_count);
-                return 0;
-            }
-        }
-        return 2;
+        // pembacaan hingga semua cluster terbaca dan dimasukkan ke request.buf.
+        uint32_t cluster_number = (entry.cluster_high << 16) | entry.cluster_low;
+        uint32_t cluster_count = ceil((double)entry.filesize / (double)CLUSTER_SIZE);
+        read_clusters(request.buf, cluster_number, cluster_count);
+        return 0;
     }
-    return -1;
+
+    return -1; // Unknown
 }
 
 /**
