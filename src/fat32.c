@@ -266,7 +266,7 @@ int8_t read(struct FAT32DriverRequest request)
     }
 
     // Error jika flag subdirectory menyala
-    else if (fat32_driver_state.dir_table_buf.table[idx].attribute == 1)
+    else if (fat32_driver_state.dir_table_buf.table[idx].attribute == 1 || request.buffer_size == 0)
     {
         return 1;
     }
@@ -462,7 +462,6 @@ int8_t write(struct FAT32DriverRequest request)
                 {
                     //buat entry baru
                     struct FAT32DirectoryEntry new_entry = {
-                    .attribute = ATTR_SUBDIRECTORY,
                     .user_attribute = UATTR_NOT_EMPTY,
                     .filesize = request.buffer_size,
                     .cluster_high = (tempindex >> 16) & 0xFFFF,
@@ -482,7 +481,7 @@ int8_t write(struct FAT32DriverRequest request)
                 }
                 nextIndex = tempindex+1;
                 //cari yang kosong kedua
-                while (fat32_driver_state.fat_table.cluster_map[nextIndex] != 0 && nextIndex == tempindex)
+                while (fat32_driver_state.fat_table.cluster_map[nextIndex] != 0)
                 {
                     nextIndex++;
                 }
