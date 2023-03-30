@@ -74,9 +74,11 @@ void keyboard_isr(void) {
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
         if(mapped_char == '\b'){
             backspace_pressed = TRUE;
-            framebuffer_write(row, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
-            framebuffer_set_cursor(row,keyboard_state.buffer_index-1);
-            keyboard_state.keyboard_buffer[keyboard_state.buffer_index-1] = ' ';
+            if(keyboard_state.buffer_index != 0){
+                framebuffer_write(row, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
+                framebuffer_set_cursor(row,keyboard_state.buffer_index-1);
+                keyboard_state.keyboard_buffer[keyboard_state.buffer_index-1] = ' ';
+            }
         }
         else if (scancode == 0x1C && !key_pressed)
         {
@@ -96,21 +98,18 @@ void keyboard_isr(void) {
             if(keyboard_state.buffer_index != 0)
                 keyboard_state.buffer_index--;
 
-            /* Supaya cursor naik 
-             * Cek apakah di kolom ke-0 dan bukan di row ke 0
-             * Jika sudah di kolom ke-0 naikkan rownya
-             * Kalau sudah naik, while sampai ketemu karakter
-             * Set cursor di tempat tsb.
-             */
             if(keyboard_state.buffer_index == 0 && row != 0){
+                framebuffer_write(row, keyboard_state.buffer_index, ' ', 0x0F, 0x00);
+                keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = ' ';
                 row--;
-                int setCol = keyboard_state.buffer_index;
-                while(keyboard_state.keyboard_buffer[keyboard_state.buffer_index] > 0x1B)
-                {
-                    setCol--;
+                uint8_t col = 0;
+                for (uint8_t i = keyboard_state.buffer_index; i < 80; i++){
+                    if(keyboard_state.keyboard_buffer[i] != '\0'){
+                        break;
+                    }
+                    col++;
                 }
-                /* Ini dia masih gak mau ke char yang gak kosong */
-                framebuffer_set_cursor(row, setCol);
+                framebuffer_set_cursor(row,col+1);
             }
         }
         else if (scancode >= 0x80 && scancode != 0x9C  && key_pressed) {
