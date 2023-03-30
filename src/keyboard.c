@@ -99,17 +99,20 @@ void keyboard_isr(void) {
                 keyboard_state.buffer_index--;
 
             if(keyboard_state.buffer_index == 0 && row != 0){
+                uint8_t *fb = MEMORY_FRAMEBUFFER;
                 framebuffer_write(row, keyboard_state.buffer_index, ' ', 0x0F, 0x00);
                 keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = ' ';
                 row--;
                 uint8_t col = 0;
-                for (uint8_t i = keyboard_state.buffer_index; i < 80; i++){
-                    if(keyboard_state.keyboard_buffer[i] != '\0'){
+                for (int i = 80; i > 0; i--)
+                {
+                    if(fb[(row*80-i)*2] != 0){
+                        col = i;
                         break;
                     }
-                    col++;
                 }
                 framebuffer_set_cursor(row,col+1);
+                keyboard_state.buffer_index = col;
             }
         }
         else if (scancode >= 0x80 && scancode != 0x9C  && key_pressed) {
