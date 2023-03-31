@@ -92,8 +92,7 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ┃ ┣ 📜portio.c
  ┃ ┗ 📜stdmem.c
  ┣ 📜README.md
- ┣ 📜makefile
- ┗ 📜readwrite.txt
+ ┗ 📜makefile
  ```
  
  ## Requirements
