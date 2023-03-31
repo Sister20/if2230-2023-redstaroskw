@@ -42,6 +42,11 @@ struct PageDirectoryEntryFlag {
  * 
  * @param flag            Contain 8-bit page directory entry flag
  * @param global_page     Is this page translation global (also cannot be flushed)
+ * @param ignored         Ignored by CPU
+ * @param pat             Page attribute table index
+ * @param physical_addr   Physical address of page frame
+ * @param lower_address   Lower 5 bit of physical address
+ * @param upper_address   Upper 10 bit of physical address
  * 
  */
 struct PageDirectoryEntry {
