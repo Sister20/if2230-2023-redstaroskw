@@ -1,4 +1,5 @@
 #include "lib-header/paging.h"
+#include "lib-header/stdmem.h"
 
 __attribute__((aligned(0x1000))) struct PageDirectory _paging_kernel_page_directory = {
     .table = {
@@ -33,16 +34,23 @@ int8_t allocate_single_user_page_frame(void *virtual_addr) {
     // Using default QEMU config (128 MiB max memory)
     uint32_t last_physical_addr = (uint32_t) page_driver_state.last_available_physical_addr;
 
-    // Check if last_physical_addr does not exceed 128 MiB
     if (last_physical_addr < 0x8000000) {
-        update_page_directory_entry((void*) last_physical_addr, virtual_addr, (struct PageDirectoryEntryFlag) {
-            .present_bit = 1,
-            .write_bit   = 1,
-        });
+        // Allocate a new page frame
+        void *new_physical_addr = (void *) last_physical_addr;
+        memset(new_physical_addr, 0, PAGE_FRAME_SIZE);
 
+        // Update the page directory entry for the virtual address
+        struct PageDirectoryEntryFlag flag = {
+            .present_bit = 1,
+            .write_bit = 1,
+            .user_bit = 1,
+            .use_pagesize_4_mb = 0,
+        };
+        update_page_directory_entry(new_physical_addr, virtual_addr, flag);
+
+        // Update the state to the next available physical address
         page_driver_state.last_available_physical_addr += PAGE_FRAME_SIZE;
-        return 0;
-    }       
+    }
     return -1;
 }
 
