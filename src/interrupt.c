@@ -48,6 +48,7 @@ void main_interrupt_handler(
     __attribute__((unused)) struct InterruptStack info
 ) {
     switch (int_number) {
+        // case PAGE_FAULT:
         case PIC1_OFFSET + IRQ_KEYBOARD - 1:
             while (TRUE){
                 keyboard_state_activate();
