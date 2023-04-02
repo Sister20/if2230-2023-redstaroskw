@@ -8,6 +8,7 @@ __attribute__((aligned(0x1000))) struct PageDirectory _paging_kernel_page_direct
             .flag.write_bit         = 1,
             .lower_address          = 0,
             .flag.use_pagesize_4_mb = 1,
+
         },
         [0x300] = {
             .flag.present_bit       = 1,
@@ -44,12 +45,13 @@ int8_t allocate_single_user_page_frame(void *virtual_addr) {
             .present_bit = 1,
             .write_bit = 1,
             .user_bit = 1,
-            .use_pagesize_4_mb = 0,
+            .use_pagesize_4_mb = 1,
         };
         update_page_directory_entry(new_physical_addr, virtual_addr, flag);
 
         // Update the state to the next available physical address
         page_driver_state.last_available_physical_addr += PAGE_FRAME_SIZE;
+        return 0;
     }
     return -1;
 }
