@@ -31,6 +31,10 @@ void update_page_directory_entry(void *physical_addr, void *virtual_addr, struct
     flush_single_tlb(virtual_addr);
 }
 
+/*
+selalu masuk interrupt pagefault - gatau knp
+HIKS - ahmad
+*/
 int8_t allocate_single_user_page_frame(void *virtual_addr) {
     // Using default QEMU config (128 MiB max memory)
     uint32_t last_physical_addr = (uint32_t) page_driver_state.last_available_physical_addr;
