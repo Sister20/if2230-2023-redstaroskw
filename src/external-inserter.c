@@ -61,9 +61,9 @@ int main(int argc, char *argv[]) {
     if (fptr_target == NULL)
         filesize = 0;
     else {
-        filesize = ftell(fptr_target);
         fread(file_buffer, 4*1024*1024, 1, fptr_target);
         fseek(fptr_target, 0, SEEK_END);
+        filesize = ftell(fptr_target);
         fclose(fptr_target);
     }
 
