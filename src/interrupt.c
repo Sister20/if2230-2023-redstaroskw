@@ -1,5 +1,9 @@
 #include "lib-header/interrupt.h"
 #include "lib-header/portio.h"
+#include "lib-header/idt.h"
+#include "lib-header/fat32.h"
+#include "lib-header/stdmem.h"
+#include "lib-header/framebuffer.h"
 
 void io_wait(void) {
     out(0x80, 0);
@@ -42,6 +46,29 @@ void pic_remap(void) {
     out(PIC2_DATA, a2);
 }
 
+// lmao idk how to implement this
+void puts(char *str, uint32_t len, uint32_t color) {
+    for (uint32_t i = 0; i < len; i++) {
+        framebuffer_write(0, 0, str[i], color, 0x00);
+    }
+}
+
+void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
+    if (cpu.eax == 0) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = read(request);
+    } else if (cpu.eax == 4) {
+        keyboard_state_activate();
+        __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
+        while (is_keyboard_blocking());
+        char buf[KEYBOARD_BUFFER_SIZE];
+        get_keyboard_buffer(buf);
+        memcpy((char *) cpu.ebx, buf, cpu.ecx);
+    } else if (cpu.eax == 5) {
+        puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+    }
+}
+
 void main_interrupt_handler(
     __attribute__((unused)) struct CPURegister cpu,
     uint32_t int_number,
@@ -51,10 +78,16 @@ void main_interrupt_handler(
         case PAGE_FAULT:
             __asm__("hlt");
             break;
+
         case PIC1_OFFSET + IRQ_KEYBOARD:
             while (TRUE){
                 keyboard_state_activate();
             }
+
+        case 0x30:
+            syscall(cpu, info);
+            break;
+
         default:
             break;
     }
@@ -65,7 +98,9 @@ void activate_keyboard_interrupt(void) {
     out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
 }
 
-struct TSSEntry _interrupt_tss_entry;
+struct TSSEntry _interrupt_tss_entry = {
+    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+};
 
 void set_tss_kernel_current_stack(void) {
     uint32_t stack_ptr;
