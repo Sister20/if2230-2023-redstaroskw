@@ -42,21 +42,23 @@ struct PageDirectoryEntryFlag {
  * 
  * @param flag            Contain 8-bit page directory entry flag
  * @param global_page     Is this page translation global (also cannot be flushed)
- * @param ignored         Ignored by CPU
- * @param pat             Page attribute table index
- * @param physical_addr   Physical address of page frame
- * @param lower_address   Lower 5 bit of physical address
- * @param upper_address   Upper 10 bit of physical address
- * 
+ * @param ignored         Ignored by processor
+ * @param pat_bit         Indicate whether the page is cacheable or not
+ * @param higher_address  Higher 8-bit of physical address
+ * @param reserved        Reserved bit, must be 1
+ * @param lower_address   Lower 10-bit of physical address
+ * Note:
+ * - Assume "Bits 39:32 of address" (higher_address) is 8-bit and Reserved is 1
+ * - "Bits 31:22 of address" is called lower_address in kit
  */
 struct PageDirectoryEntry {
     struct PageDirectoryEntryFlag flag;
     uint16_t global_page    : 1;
     uint16_t ignored        : 3;
-    uint16_t pat            : 1;
-    uint16_t physical_addr  : 4;
-    uint16_t lower_address  : 5;
-    uint16_t upper_address  : 10;
+    uint16_t pat_bit        : 1;
+    uint16_t higher_address : 8;
+    uint16_t reserved       : 1;
+    uint16_t lower_address  : 10;
 } __attribute__((packed));
 
 
@@ -87,14 +89,14 @@ struct PageDriverState {
 
 
 /**
- * update_page_directory,
+ * update_page_directory_entry,
  * Edit _paging_kernel_page_directory with respective parameter
  * 
  * @param physical_addr Physical address to map
  * @param virtual_addr  Virtual address to map
  * @param flag          Page entry flags
  */
-void update_page_directory(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag);
+void update_page_directory_entry(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag);
 
 /**
  * flush_single_tlb, 
