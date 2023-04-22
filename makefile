@@ -20,6 +20,8 @@ IFLAGS		  = -R -b boot/grub/grub1 -no-emul-boot -boot-load-size 4 -A os -input-c
 DISK_NAME     = storage
 DISK_LOAD	  = -drive file=bin/storage.bin,format=raw,if=ide,index=0,media=disk -cdrom 
 
+uff: disk insert-shell run
+
 run: all
 	@qemu-system-i386 -s $(DISK_LOAD) $(OUTPUT_FOLDER)/$(ISO_NAME).iso
 
