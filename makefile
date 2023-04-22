@@ -75,8 +75,12 @@ user-shell:
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
 		user-entry.o user-shell.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
+		user-entry.o user-shell.o -o $(OUTPUT_FOLDER)/shell_elf
+	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/shell
 	@rm -f *.o
+
 
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
