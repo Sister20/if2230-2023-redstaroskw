@@ -51,7 +51,7 @@ void main_interrupt_handler(
         case PAGE_FAULT:
             __asm__("hlt");
             break;
-        case PIC1_OFFSET + IRQ_KEYBOARD - 1:
+        case PIC1_OFFSET + IRQ_KEYBOARD:
             while (TRUE){
                 keyboard_state_activate();
             }
