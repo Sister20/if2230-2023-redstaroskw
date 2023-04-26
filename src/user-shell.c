@@ -11,6 +11,17 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
+int strlen(char* str){
+    int len = 0;
+    while (str[len] != '\0')
+        len++;
+    return len;
+}
+
+void puts(char* buf, uint8_t color){
+    syscall(5, (uint32_t) buf, strlen(buf), color);
+}
+
 int main(void) {
     struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
@@ -27,6 +38,10 @@ int main(void) {
 
     char buf[16];
     while (TRUE) {
+        puts("Nadil@RedStarOSKW ", 0x2);
+        puts(":",0x8);
+        puts("/",0x1);
+        puts("$ ", 0xF);
         syscall(4, (uint32_t) buf, 16, 0);
         syscall(5, (uint32_t) buf, 16, 0xF);
     }

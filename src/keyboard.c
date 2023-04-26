@@ -33,7 +33,7 @@ void keyboard_state_activate(void){
     keyboard_state.keyboard_input_on = TRUE;
     // keyboard_state.buffer_index = 0;
     memset(keyboard_state.keyboard_buffer, 0, sizeof(keyboard_state.keyboard_buffer));
-    keyboard_isr();
+    // keyboard_isr();
 }
 
 // Deactivate keyboard ISR / stop listening keyboard interrupt
@@ -53,6 +53,16 @@ bool is_keyboard_blocking(void){
     return keyboard_state.keyboard_input_on;
 }
 
+void set_keyboard_buffer_index(uint8_t index){
+    keyboard_state.buffer_index = index;
+}
+
+int8_t row = 0;
+
+void set_row(uint8_t r){
+    row = r;
+}
+
 /**
  * Handling keyboard interrupt & process scancodes into ASCII character.
  * Will start listen and process keyboard scancode if keyboard_input_on.
@@ -64,7 +74,7 @@ bool is_keyboard_blocking(void){
  * This can be made into blocking input with `while (is_keyboard_blocking());` 
  * after calling `keyboard_state_activate();`
  */
-int8_t row = 0;
+
 // static bool 
 void keyboard_isr(void) {
     if (!keyboard_state.keyboard_input_on) {
@@ -73,8 +83,8 @@ void keyboard_isr(void) {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
         if(mapped_char == '\b'){
-            backspace_pressed = TRUE;
-            if(keyboard_state.buffer_index != 0){
+            if(keyboard_state.buffer_index >= 22){
+                backspace_pressed = TRUE;
                 framebuffer_write(row, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
                 framebuffer_set_cursor(row,keyboard_state.buffer_index-1);
                 keyboard_state.keyboard_buffer[keyboard_state.buffer_index-1] = ' ';

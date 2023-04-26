@@ -54,7 +54,7 @@ kernel:
 	@rm -f bin/*.o
 	
 
-iso: kernel
+iso: kernel disk insert-shell
 	@mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
 	@cp other/grub1                 $(OUTPUT_FOLDER)/iso/boot/grub/

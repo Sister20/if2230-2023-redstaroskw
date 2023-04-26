@@ -1,3 +1,8 @@
 {
     "debug.onTaskErrors": "debugAnyway",
+    "files.associations": {
+        "portio.h": "c",
+        "stdtype.h": "c",
+        "stdmem.h": "c"
+    },
 }
