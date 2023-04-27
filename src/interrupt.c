@@ -128,13 +128,31 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
         keyboard_state_activate();
         __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
         while (is_keyboard_blocking());
-        char buf[KEYBOARD_BUFFER_SIZE];
-        get_keyboard_buffer(buf);
-        memcpy((char *) cpu.ebx, buf, cpu.ecx);
+            char buf[KEYBOARD_BUFFER_SIZE];
+            get_keyboard_buffer(buf);
+            memcpy((char *) cpu.ebx, buf, cpu.ecx);
     } else if (cpu.eax == 5) {
         set_col(21);
         framebuffer_set_cursor(row_now, 21);
         set_row(row_now);
+    if (memcmp((char *) cpu.ebx, "cd", 2) == 0){
+        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
+    } else if (memcmp((char *) cpu.ebx, "ls", 2) == 0){
+        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
+    } else if (memcmp((char *) cpu.ebx, "mkdir", 5) == 0){
+        puts((char *) cpu.ebx + 6, cpu.ecx, cpu.edx);
+    } else if (memcmp((char * ) cpu.ebx, "cat", 3) == 0){
+        puts((char *) cpu.ebx + 4, cpu.ecx, cpu.edx);
+    } else if (memcmp((char * ) cpu.ebx, "cp", 2) == 0){
+        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
+    } else if (memcmp((char *) cpu.ebx, "rm", 2) == 0){
+        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
+    } else if (memcmp((char *) cpu.ebx, "mv", 2) == 0){
+        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
+    } else if (memcmp((char *) cpu.ebx, "whereis", 7) == 0){
+        puts((char *) cpu.ebx + 8, cpu.ecx, cpu.edx);
+    } else{
         puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
-    }
+}
+}
 }
