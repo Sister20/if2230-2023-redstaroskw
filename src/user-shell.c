@@ -78,7 +78,18 @@ void parseCommand(uint32_t buf){
             .parent_cluster_number = ROOT_CLUSTER_NUMBER,
             .buffer_size           = 0,
         };
-        memcpy(request.name, (void *) (buf + 4), 8);
+
+        int nameLen = 0;
+        char* itr = (char * ) buf + 3;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                break;
+            }else{
+                nameLen++;
+            }
+        }/* file.txt*/
+        memcpy(request.name, (void *) (buf + 3), nameLen);
+        memcmp(request.ext, (void *) (buf + 3 + nameLen + 1), 3);
         int32_t retcode;
         syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
 
@@ -123,7 +134,14 @@ int main(void) {
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
     // if (retcode == 0)
         // syscall(5, (uint32_t) "owo", 3, 0xF);
-
+    struct FAT32DriverRequest req = {
+        .buf = &cl,
+        .name = "asu",
+        .ext = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size = CLUSTER_SIZE,
+    };
+    syscall(2, (uint32_t) &req, (uint32_t) &retcode, 0);
     char buf[16];
     while (TRUE) {
         puts("Nadil@RedStarOSKW ", 0x2);
