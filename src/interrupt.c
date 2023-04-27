@@ -128,9 +128,9 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
         keyboard_state_activate();
         __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
         while (is_keyboard_blocking());
-            char buf[KEYBOARD_BUFFER_SIZE];
-            get_keyboard_buffer(buf);
-            memcpy((char *) cpu.ebx, buf, cpu.ecx);
+        char buf[KEYBOARD_BUFFER_SIZE];
+        get_keyboard_buffer(buf);
+        memcpy((char *) cpu.ebx, buf, cpu.ecx);
     } else if (cpu.eax == 5) {
         set_col(21);
         framebuffer_set_cursor(row_now, 21);
