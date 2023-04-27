@@ -101,7 +101,18 @@ void parseCommand(uint32_t buf){
     } 
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
-        // puts(buf + 3, cpu.ecx, cpu.edx);
+        // Delete a file
+        struct FAT32DriverRequest request = {
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0,
+        };
+        memcpy(request.name, (void *) (buf + 3), 8);
+        int32_t retcode;
+        syscall(3, (uint32_t) &request, (uint32_t) &retcode, 0);
+        if (retcode == 0)
+            puts("Success", 0x2);
+        else
+            puts("Failed", 0x4);
     } 
     else if (memcmp((char *) buf, "mv", 2) == 0)
     {
