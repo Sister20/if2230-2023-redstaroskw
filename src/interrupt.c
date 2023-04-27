@@ -99,9 +99,16 @@ void puts(char *str, uint32_t len, uint32_t color) {
         framebuffer_write(row_now, 18, str[0], color, 0);
     }else if (memcmp(str,"$",1) == 0) {
         framebuffer_write(row_now, 19, str[0], color, 0);
+    }else if (memcmp(str,"cls",3) == 0) {
+        row_now = 0;
+        for (uint32_t i = 0; i < 25; i++) {
+            for (uint32_t j = 0; j < 80; j++) {
+                framebuffer_write(i, j, ' ', color, 0);
+            }
+        }
     }else{
-        str = "Welcome!";
-        len = 8;
+        // str = "Welcome!";
+        // len = 8;
         row_now++;
         for (uint32_t i = 0; i < len; i++) {
             framebuffer_write(row_now, i, str[i], color, 0);
@@ -122,7 +129,7 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
         get_keyboard_buffer(buf);
         memcpy((char *) cpu.ebx, buf, cpu.ecx);
     } else if (cpu.eax == 5) {
-        set_keyboard_buffer_index(21);
+        set_col(21);
         framebuffer_set_cursor(row_now, 21);
         set_row(row_now);
         puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side

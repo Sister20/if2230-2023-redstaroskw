@@ -45,6 +45,5 @@ int main(void) {
         syscall(4, (uint32_t) buf, 16, 0);
         syscall(5, (uint32_t) buf, 16, 0xF);
     }
-
     return 0;
 }
