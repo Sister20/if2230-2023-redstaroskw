@@ -104,8 +104,10 @@ void keyboard_isr(void) {
         }
         else if (scancode >= 0x80 && backspace_pressed){
             backspace_pressed = FALSE;
-            if(keyboard_state.buffer_index != 0)
+            if(keyboard_state.buffer_index != 0){
                 keyboard_state.buffer_index--;
+                col--;
+            }
 
             if(keyboard_state.buffer_index == 0 && row != 0){
                 uint8_t *fb = MEMORY_FRAMEBUFFER;
