@@ -16,7 +16,7 @@ void kernel_setup(void) {
     initialize_idt();
     activate_keyboard_interrupt();
     framebuffer_clear();
-    framebuffer_set_cursor(0, 0);
+    framebuffer_set_cursor(0, 20);
     initialize_filesystem_fat32();
     gdt_install_tss();
     set_tss_register();
@@ -117,7 +117,7 @@ void kernel_setup(void) {
 // void kernel_setup(void) {
 //     enter_protected_mode(&_gdt_gdtr);
 //     framebuffer_clear();
-//     framebuffer_write(4,42,' ',0,0x4);
+    // framebuffer_write(4,42,' ',0,0x4);
 //     framebuffer_write(5,36,' ',0,0x1);
 //     framebuffer_write(5,37,' ',0,0x3);
 //     framebuffer_write(5,38,' ',0,0x3);

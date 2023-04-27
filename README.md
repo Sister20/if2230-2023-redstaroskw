@@ -3,6 +3,8 @@
 
 > Milestone 2: Pembuatan Sistem Operasi x86, Interrupt, Driver, dan Filesystem
 
+> Milestone 3: Pembuatan Sistem Operasi x86 Paging, User Mode, dan Shell
+
 ## Anggota Kelompok
 <table>
     <tr>
@@ -57,6 +59,12 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
 - Disk driver
 - File System
 
+Pada milestone ketiga, hal-hal yang akan dibuat adalah sebagai berikut:
+- Paging
+- User Mode
+- Shell
+
+
 ## Struktur File
 ```bash
 📦if2230-2023-redstaroskw
@@ -75,9 +83,11 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ┃ ┃ ┣ 📜kernel_loader.h
  ┃ ┃ ┣ 📜keyboard.h
  ┃ ┃ ┣ 📜portio.h
+ ┃ ┃ ┣ 📜paging.h
  ┃ ┃ ┣ 📜stdmem.h
  ┃ ┃ ┗ 📜stdtype.h
  ┃ ┣ 📜disk.c 
+ ┃ ┣ 📜external-inserter.c 
  ┃ ┣ 📜fat32.c
  ┃ ┣ 📜framebuffer.c
  ┃ ┣ 📜gdt.c
@@ -89,8 +99,12 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ┃ ┣ 📜keyboard.c
  ┃ ┣ 📜linker.ld
  ┃ ┣ 📜menu.lst
+ ┃ ┣ 📜paging.c
  ┃ ┣ 📜portio.c
  ┃ ┗ 📜stdmem.c
+ ┃ ┣ 📜user-entry.s 
+ ┃ ┣ 📜user-linker.ld
+ ┃ ┗ 📜user-shell.c
  ┣ 📜README.md
  ┗ 📜makefile
  ```
@@ -108,7 +122,7 @@ Pada milestone kedua, hal-hal yang akan dibuat adalah sebagai berikut:
  ## Cara Menjalankan Program
  1. Clone repository Github ini
  2. Install semua requirements yang diperlukan
- 3. Jalankan program menjalankan `make all` di terminal pada directory repository ini
+ 3. Jalankan program menjalankan `make os` di terminal pada directory repository ini
  
  ## Acknowledgements
 - Tuhan Yang Maha Esa

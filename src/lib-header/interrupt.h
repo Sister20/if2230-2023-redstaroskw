@@ -3,6 +3,12 @@
 
 #include "stdtype.h"
 #include "keyboard.h"
+#include "portio.h"
+#include "idt.h"
+#include "fat32.h"
+#include "stdmem.h"
+#include "framebuffer.h"
+
 
 /* -- PIC constants -- */
 
@@ -139,5 +145,10 @@ struct TSSEntry {
 
 // Set kernel stack in TSS
 void set_tss_kernel_current_stack(void);
+
+// lmao idk how to implement this
+void puts(char *str, uint32_t len, uint32_t color);
+
+void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info);
 
 #endif

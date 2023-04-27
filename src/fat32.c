@@ -239,7 +239,7 @@ int8_t read(struct FAT32DriverRequest request)
     // Membaca DirectoryTable
     read_clusters(&fat32_driver_state.dir_table_buf, request.parent_cluster_number, 1);
     
-    // Mencari name dan ext yang sama
+    // Mencari name dan ext yang sama6
     int idx = -1;
     for (uint32_t i = 0; i < 64; i++)
     {
@@ -279,8 +279,8 @@ int8_t read(struct FAT32DriverRequest request)
         {
             cluster_count++;
         }
-        else
-        {
+        // else
+        // {
             uint32_t cluster_number = (fat32_driver_state.dir_table_buf.table[idx].cluster_high << 16) | fat32_driver_state.dir_table_buf.table[idx].cluster_low;
             for (uint32_t j = 0 ; j < cluster_count; j++)
             {
@@ -295,7 +295,7 @@ int8_t read(struct FAT32DriverRequest request)
                     cluster_number = fat32_driver_state.fat_table.cluster_map[cluster_number];
                 }
             }
-        }
+        // }
         return 0;
     }
     return -1; // Unknown

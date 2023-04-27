@@ -1,5 +1,4 @@
 #include "lib-header/interrupt.h"
-#include "lib-header/portio.h"
 
 void io_wait(void) {
     out(0x80, 0);
@@ -42,6 +41,7 @@ void pic_remap(void) {
     out(PIC2_DATA, a2);
 }
 
+
 void main_interrupt_handler(
     __attribute__((unused)) struct CPURegister cpu,
     uint32_t int_number,
@@ -51,10 +51,20 @@ void main_interrupt_handler(
         case PAGE_FAULT:
             __asm__("hlt");
             break;
+
         case PIC1_OFFSET + IRQ_KEYBOARD:
-            while (TRUE){
-                keyboard_state_activate();
-            }
+            // while (TRUE){
+                // keyboard_state_activate();
+            // }
+            // keyboard_isr();
+            // keyboard_state_activate();
+            keyboard_isr();
+            break;
+
+        case 0x30:
+            syscall(cpu, info);
+            break;
+
         default:
             break;
     }
@@ -63,9 +73,11 @@ void main_interrupt_handler(
 void activate_keyboard_interrupt(void) {
     out(PIC1_DATA, PIC_DISABLE_ALL_MASK ^ (1 << IRQ_KEYBOARD));
     out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
-}
+}   
 
-struct TSSEntry _interrupt_tss_entry;
+struct TSSEntry _interrupt_tss_entry = {
+    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+};
 
 void set_tss_kernel_current_stack(void) {
     uint32_t stack_ptr;
@@ -73,4 +85,53 @@ void set_tss_kernel_current_stack(void) {
     __asm__ volatile ("mov %%ebp, %0": "=r"(stack_ptr) : /* <Empty> */);
     // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
+}
+
+uint8_t row_now = 0;
+void puts(char *str, uint32_t len, uint32_t color) {
+    if (memcmp(str,"Nadil@RedStarOSKW ",18) == 0) {
+        for (uint32_t i = 0; i < len; i++) {
+            framebuffer_write(row_now, i, str[i], color, 0);
+        }
+    }else if (memcmp(str,":",1) == 0) {
+        framebuffer_write(row_now, 17, str[0], color, 0);
+    }else if (memcmp(str,"/",1) == 0) {
+        framebuffer_write(row_now, 18, str[0], color, 0);
+    }else if (memcmp(str,"$",1) == 0) {
+        framebuffer_write(row_now, 19, str[0], color, 0);
+    }else if (memcmp(str,"cls",3) == 0) {
+        row_now = 0;
+        for (uint32_t i = 0; i < 25; i++) {
+            for (uint32_t j = 0; j < 80; j++) {
+                framebuffer_write(i, j, ' ', color, 0);
+            }
+        }
+    }else{
+        // str = "Welcome!";
+        // len = 8;
+        row_now++;
+        for (uint32_t i = 0; i < len; i++) {
+            framebuffer_write(row_now, i, str[i], color, 0);
+        }
+        row_now ++;
+    }
+}
+
+void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
+    if (cpu.eax == 0) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = read(request);
+    } else if (cpu.eax == 4) {
+        keyboard_state_activate();
+        __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
+        while (is_keyboard_blocking());
+        char buf[KEYBOARD_BUFFER_SIZE];
+        get_keyboard_buffer(buf);
+        memcpy((char *) cpu.ebx, buf, cpu.ecx);
+    } else if (cpu.eax == 5) {
+        set_col(21);
+        framebuffer_set_cursor(row_now, 21);
+        set_row(row_now);
+        puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+    }
 }
