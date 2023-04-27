@@ -53,11 +53,6 @@ void main_interrupt_handler(
             break;
 
         case PIC1_OFFSET + IRQ_KEYBOARD:
-            // while (TRUE){
-                // keyboard_state_activate();
-            // }
-            // keyboard_isr();
-            // keyboard_state_activate();
             keyboard_isr();
             break;
 
@@ -89,70 +84,83 @@ void set_tss_kernel_current_stack(void) {
 
 uint8_t row_now = 0;
 void puts(char *str, uint32_t len, uint32_t color) {
-    if (memcmp(str,"Nadil@RedStarOSKW ",18) == 0) {
-        for (uint32_t i = 0; i < len; i++) {
+    if (memcmp(str,"Nadil@RedStarOSKW ",18) == 0)
+    {
+        for (uint32_t i = 0; i < len; i++)
+        {
             framebuffer_write(row_now, i, str[i], color, 0);
         }
-    }else if (memcmp(str,":",1) == 0) {
+    }
+    else if (memcmp(str,":",1) == 0)
+    {
         framebuffer_write(row_now, 17, str[0], color, 0);
-    }else if (memcmp(str,"/",1) == 0) {
+    }
+    else if (memcmp(str,"/",1) == 0)
+    {
         framebuffer_write(row_now, 18, str[0], color, 0);
-    }else if (memcmp(str,"$",1) == 0) {
+    }
+    else if (memcmp(str,"$",1) == 0)
+    {
         framebuffer_write(row_now, 19, str[0], color, 0);
-    }else if (memcmp(str,"cls",3) == 0) {
+    }
+    else if (memcmp(str,"cls",3) == 0)
+    {
         row_now = 0;
-        for (uint32_t i = 0; i < 25; i++) {
-            for (uint32_t j = 0; j < 80; j++) {
+        for (uint32_t i = 0; i < 25; i++)
+        {
+            for (uint32_t j = 0; j < 80; j++)
+            {
                 framebuffer_write(i, j, ' ', color, 0);
             }
         }
-    }else{
-        // add ": command not found" after command
+    }
+    else
+    {
         row_now++;
-        for (uint32_t i = 0; i < len; i++) {
+        for (uint32_t i = 0; i < len; i++)
+        {
             framebuffer_write(row_now, i, str[i], color, 0);
-        }
-        char* not_found = ": command not found";  
-        for (uint32_t i = 0; i < 19; i++) {
-            framebuffer_write(row_now, len+i, not_found[i], color, 0);
         }
         row_now ++;
     }
 }
 
 void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
-    if (cpu.eax == 0) {
+    if (cpu.eax == 0) // FS read
+    {
         struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
         *((int8_t*) cpu.ecx) = read(request);
-    } else if (cpu.eax == 4) {
+        read(request);
+    }
+    else if (cpu.eax == 1) // FS read_directory
+    {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int32_t*) cpu.ecx) = read_directory(request);
+    }
+    else if (cpu.eax == 2) // FS write
+    {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int32_t*) cpu.ecx) = write(request);
+    }
+    else if (cpu.eax == 3) // FS delete
+    {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int32_t*) cpu.ecx) = delete(request);
+    }
+    else if (cpu.eax == 4) // KEYBOARD INPUT
+    {
         keyboard_state_activate();
         __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
         while (is_keyboard_blocking());
         char buf[KEYBOARD_BUFFER_SIZE];
         get_keyboard_buffer(buf);
         memcpy((char *) cpu.ebx, buf, cpu.ecx);
-    } else if (cpu.eax == 5) {
+    }
+    else if (cpu.eax == 5) // TEXT OUTPUT
+    {
         set_col(21);
-        framebuffer_set_cursor(row_now, 21);
         set_row(row_now);
-    if (memcmp((char *) cpu.ebx, "cd", 2) == 0){
-        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
-    } else if (memcmp((char *) cpu.ebx, "ls", 2) == 0){
-        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
-    } else if (memcmp((char *) cpu.ebx, "mkdir", 5) == 0){
-        puts((char *) cpu.ebx + 6, cpu.ecx, cpu.edx);
-    } else if (memcmp((char * ) cpu.ebx, "cat", 3) == 0){
-        puts((char *) cpu.ebx + 4, cpu.ecx, cpu.edx);
-    } else if (memcmp((char * ) cpu.ebx, "cp", 2) == 0){
-        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
-    } else if (memcmp((char *) cpu.ebx, "rm", 2) == 0){
-        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
-    } else if (memcmp((char *) cpu.ebx, "mv", 2) == 0){
-        puts((char *) cpu.ebx + 3, cpu.ecx, cpu.edx);
-    } else if (memcmp((char *) cpu.ebx, "whereis", 7) == 0){
-        puts((char *) cpu.ebx + 8, cpu.ecx, cpu.edx);
-    } else{
+        framebuffer_set_cursor(row_now, 21);
         puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
-}
-}
+    }
 }
