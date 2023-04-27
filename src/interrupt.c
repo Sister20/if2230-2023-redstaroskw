@@ -129,7 +129,7 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
     if (cpu.eax == 0) // FS read
     {
         struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
-        *((int8_t*) cpu.ecx) = read(request);
+        *((int32_t*) cpu.ecx) = read(request);
         read(request);
     }
     else if (cpu.eax == 1) // FS read_directory
