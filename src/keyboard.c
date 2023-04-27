@@ -31,16 +31,13 @@ static struct KeyboardDriverState keyboard_state = {FALSE, FALSE, 0, {0}};
 // Activate keyboard ISR / start listen keyboard & save to buffer
 void keyboard_state_activate(void){
     keyboard_state.keyboard_input_on = TRUE;
-    // keyboard_state.buffer_index = 0;
-    memset(keyboard_state.keyboard_buffer, 0, sizeof(keyboard_state.keyboard_buffer));
-    // keyboard_isr();
+    keyboard_state.buffer_index = 0;
+    memset(keyboard_state.keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE);
 }
 
 // Deactivate keyboard ISR / stop listening keyboard interrupt
 void keyboard_state_deactivate(void){
     keyboard_state.keyboard_input_on = FALSE;
-    keyboard_state.buffer_index = 0;
-    memset(keyboard_state.keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE);
 }
 
 // Get keyboard buffer values - @param buf Pointer to char buffer, recommended size at least KEYBOARD_BUFFER_SIZE
@@ -53,14 +50,16 @@ bool is_keyboard_blocking(void){
     return keyboard_state.keyboard_input_on;
 }
 
-void set_keyboard_buffer_index(uint8_t index){
-    keyboard_state.buffer_index = index;
-}
-
 int8_t row = 0;
 
 void set_row(uint8_t r){
     row = r;
+}
+
+int8_t col = 0;
+
+void set_col(uint8_t c){
+    col = c;
 }
 
 /**
@@ -83,10 +82,10 @@ void keyboard_isr(void) {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
         if(mapped_char == '\b'){
-            if(keyboard_state.buffer_index >= 22){
+            if(col >= 22){
                 backspace_pressed = TRUE;
-                framebuffer_write(row, keyboard_state.buffer_index-1, ' ', 0x0F, 0x00);
-                framebuffer_set_cursor(row,keyboard_state.buffer_index-1);
+                framebuffer_write(row, col-1, ' ', 0x0F, 0x00);
+                framebuffer_set_cursor(row,col-1);
                 keyboard_state.keyboard_buffer[keyboard_state.buffer_index-1] = ' ';
             }
         }
@@ -94,14 +93,14 @@ void keyboard_isr(void) {
         {
             keyboard_state_deactivate();
             row++;
-            framebuffer_set_cursor(row,keyboard_state.buffer_index);
+            framebuffer_set_cursor(row,col);
             key_pressed = TRUE;
         }
         else if (scancode >= 0x02 && scancode <=0x4A && !key_pressed) {
-            key_pressed = TRUE;
-            framebuffer_write(row, keyboard_state.buffer_index, mapped_char, 0x0F, 0x00);
-            framebuffer_set_cursor(row,keyboard_state.buffer_index+1);
+            framebuffer_write(row, col, mapped_char, 0x0F, 0x00);
+            framebuffer_set_cursor(row,col+1);
             keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = mapped_char;
+            key_pressed = TRUE;
         }
         else if (scancode >= 0x80 && backspace_pressed){
             backspace_pressed = FALSE;
@@ -110,7 +109,7 @@ void keyboard_isr(void) {
 
             if(keyboard_state.buffer_index == 0 && row != 0){
                 uint8_t *fb = MEMORY_FRAMEBUFFER;
-                framebuffer_write(row, keyboard_state.buffer_index, ' ', 0x0F, 0x00);
+                framebuffer_write(row, col, ' ', 0x0F, 0x00);
                 keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = ' ';
                 row--;
                 uint8_t col = 0;
@@ -128,6 +127,7 @@ void keyboard_isr(void) {
         else if (scancode >= 0x80 && scancode != 0x9C  && key_pressed) {
             key_pressed = FALSE;
             keyboard_state.buffer_index++;
+            col++;
         }
         else if(scancode == 0x9C)
         {
