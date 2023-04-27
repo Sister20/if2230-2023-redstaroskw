@@ -43,7 +43,7 @@ int main(void) {
         puts("/",0x1);
         puts("$ ", 0xF);
         syscall(4, (uint32_t) buf, 16, 0);
-        syscall(5, (uint32_t) buf, 16, 0xF);
+        syscall(5, (uint32_t) buf, strlen(buf), 0xF);
     }
     return 0;
 }

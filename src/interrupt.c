@@ -107,11 +107,14 @@ void puts(char *str, uint32_t len, uint32_t color) {
             }
         }
     }else{
-        // str = "Welcome!";
-        // len = 8;
+        // add ": command not found" after command
         row_now++;
         for (uint32_t i = 0; i < len; i++) {
             framebuffer_write(row_now, i, str[i], color, 0);
+        }
+        char* not_found = ": command not found";  
+        for (uint32_t i = 0; i < 19; i++) {
+            framebuffer_write(row_now, len+i, not_found[i], color, 0);
         }
         row_now ++;
     }
