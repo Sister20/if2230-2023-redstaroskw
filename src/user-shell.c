@@ -114,21 +114,26 @@ void parseCommand(uint32_t buf){
     }
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
-        struct ClusterBuffer cbuf[5];
-        for (uint32_t i = 0; i < 5; i++)
-            for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
-                cbuf[i].buf[j] = i + 'a';
-
         struct FAT32DriverRequest request = {
-            .buf                   = cbuf,
-            .name                  = "ikanaide",
-            .ext                   = "uwu",
+            .buf                   = &cl,
             .parent_cluster_number = ROOT_CLUSTER_NUMBER,
             .buffer_size           = 0,
         };
         request.buffer_size = 5*CLUSTER_SIZE;
+        int nameLen = 0;
+        char* itr = (char * ) buf + 3;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
+                break;
+            }else{
+                nameLen++;
+            }
+        }
         memcpy(request.name, (void *) (buf + 3), 8);
-        memcpy(request.ext, "\0\0\0", 3);
+        // memcpy(request.ext, "\0\0\0", 3);
         int32_t retcode;
         syscall(3, (uint32_t) &request, (uint32_t) &retcode, 0);
         if (retcode == 0)
