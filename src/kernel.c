@@ -51,9 +51,6 @@ void kernel_setup(void) {
     write(request);  // Create folder "ikanaide"
     memcpy(request.name, "kano1\0\0\0", 8);
     write(request);  // Create folder "kano1"
-    memcpy(request.name, "ikanaide", 8);
-    memcpy(request.ext, "\0\0\0", 3);
-
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"

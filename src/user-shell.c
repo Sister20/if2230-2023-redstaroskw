@@ -43,6 +43,7 @@ void puts(char* buf, uint8_t color){
     syscall(5, (uint32_t) buf, strlen(buf), color);
 }
 
+struct ClusterBuffer cl           = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
@@ -77,6 +78,34 @@ void parseCommand(uint32_t buf){
     else if (memcmp((char * ) buf, "cp", 2) == 0)
     {
         // puts(buf + 3, cpu.ecx, cpu.edx);
+        struct FAT32DriverRequest request = {
+            .buf                   = &cl,
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0,
+        };
+        request.buffer_size = 5*CLUSTER_SIZE;
+        // memcpy(request.name, (void *) (buf + 3), 8);
+        int nameLen = 0;
+        char* itr = (char * ) buf + 3;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
+                break;
+            }else{
+                nameLen++;
+            }
+        }
+        memcpy(request.name, (void *) (buf + 3), nameLen);
+        int32_t retcode;
+        syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+
+        if(retcode == 0)
+            puts("Sukses", 0x2);
+        else
+            puts("Gagal", 0x4);
+
     } 
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
