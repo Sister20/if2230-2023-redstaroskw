@@ -62,10 +62,13 @@ void parseCommand(uint32_t buf){
         int32_t retcode;
         syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
         if (retcode == 0)
-            puts("Success", 0x2);
+            puts("Write success", 0x2);
+        else if (retcode == 1)
+            puts("File/Folder already exist", 0x4);
+        else if (retcode == 2)
+            puts("Invalid parent cluster", 0x4);
         else
-            puts("Failed", 0x4);
-        
+            puts("Unknown error", 0x4);
     }
     else if (memcmp((char * ) buf, "cat", 3) == 0)
     {
@@ -77,7 +80,31 @@ void parseCommand(uint32_t buf){
     } 
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
-        // puts(buf + 3, cpu.ecx, cpu.edx);
+        struct ClusterBuffer cbuf[5];
+        for (uint32_t i = 0; i < 5; i++)
+            for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+                cbuf[i].buf[j] = i + 'a';
+
+        struct FAT32DriverRequest request = {
+            .buf                   = cbuf,
+            .name                  = "ikanaide",
+            .ext                   = "uwu",
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0,
+        };
+        request.buffer_size = 5*CLUSTER_SIZE;
+        memcpy(request.name, (void *) (buf + 3), 8);
+        memcpy(request.ext, "\0\0\0", 3);
+        int32_t retcode;
+        syscall(3, (uint32_t) &request, (uint32_t) &retcode, 0);
+        if (retcode == 0)
+            puts("Delete Success", 0x2);
+        else if (retcode == 1)
+            puts("File/Folder Not Found", 0x4);
+        else if (retcode == 2)
+            puts("Folder is empty", 0x4);
+        else
+            puts("Unknown Error", 0x4);
     } 
     else if (memcmp((char *) buf, "mv", 2) == 0)
     {
@@ -108,6 +135,7 @@ int main(void) {
     };
     int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+
     // if (retcode == 0)
         // syscall(5, (uint32_t) "owo", 3, 0xF);
 
