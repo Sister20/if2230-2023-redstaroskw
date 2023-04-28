@@ -1,6 +1,8 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/fat32.h"
 
+uint32_t cwd = ROOT_CLUSTER_NUMBER;
+
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
     __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
@@ -50,17 +52,32 @@ int32_t buffer_length(char* buf){
     return len;
 }
 
-int32_t buffer_length(char* buf){
-    int32_t len = 0;
-    while (buf[len] != '\0')
-        len++;
-    return len;
-}
 
 struct ClusterBuffer cl = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
+        struct FAT32DriverRequest request = {
+            .buf = &cl,
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size = 0
+        };
+        memcpy(request.name, "ROOT\0\0\0\0", 8);
+        int32_t retcode;
+        struct FAT32DirectoryTable table = {};
+        request.buf = &table;
+        syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
+        for (int i = 0 ; i < 64 ; i++)
+        {
+            if (memcmp(table.table[i].name, (char *) buf + 3, 8) == 0)
+            {
+                cwd = table.table[i].cluster_low | (table.table[i].cluster_high << 16);
+                uint32_t temp = cwd;
+                cwd = temp;
+                puts("Change directory success", 0x2);
+                break;
+            }
+        }
         syscall(5, buf + 3, 16, 0xF);
     } 
     else if (memcmp((char *) buf, "ls", 2) == 0)
