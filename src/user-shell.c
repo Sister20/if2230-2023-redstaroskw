@@ -52,8 +52,24 @@ int32_t buffer_length(char* buf){
     return len;
 }
 
+void int_to_char(uint32_t num, char* buf){
+    int32_t len = 0;
+    while (num != 0)
+    {
+        buf[len] = num % 10 + '0';
+        num /= 10;
+        len++;
+    }
+    buf[len] = '\0';
+    for (int32_t i = 0; i < len / 2; i++)
+    {
+        char temp = buf[i];
+        buf[i] = buf[len - i - 1];
+        buf[len - i - 1] = temp;
+    }
+}
 
-struct ClusterBuffer cl = {0};
+struct ClusterBuffer cl           = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
@@ -148,20 +164,18 @@ void parseCommand(uint32_t buf){
         memcpy(request.name, (void *) (buf + 4), nameLen);
         int32_t retcode;
         syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
-
-        if(retcode == 0)
-        {
-            // int32_t len = buffer_length(request.buf);
-            // puts every 16
-            // for (int32_t i = 0; i < len; i += 16)
-            // {   
-                // char* isi = request.buf + i;
-                // puts(isi, 0xF);
-            // }
+        if(retcode == 0){
             puts(request.buf, 0xF);
+            puts("", 0xF);
         }
+        else if (retcode == 1)
+            puts("Not a file", 0x4);
+        else if (retcode == 2)
+            puts("Not enough buffer", 0x4);
+        else if (retcode == 3)
+            puts("Not found", 0x4);
         else
-            puts("Error", 0x4);
+            puts("Unknown error", 0x4);
 
     } 
     else if (memcmp((char * ) buf, "cp", 2) == 0)
