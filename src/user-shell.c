@@ -43,6 +43,20 @@ void puts(char* buf, uint8_t color){
     syscall(5, (uint32_t) buf, strlen(buf), color);
 }
 
+int32_t buffer_length(char* buf){
+    int32_t len = 0;
+    while (buf[len] != '\0')
+        len++;
+    return len;
+}
+
+int32_t buffer_length(char* buf){
+    int32_t len = 0;
+    while (buf[len] != '\0')
+        len++;
+    return len;
+}
+
 struct ClusterBuffer cl = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
@@ -96,18 +110,51 @@ void parseCommand(uint32_t buf){
     }
     else if (memcmp((char * ) buf, "cat", 3) == 0)
     {
-        // puts(buf + 4, cpu.ecx, cpu.edx);
-    } 
-    else if (memcmp((char * ) buf, "cp", 2) == 0)
-    {
-        // puts(buf + 3, cpu.ecx, cpu.edx);
         struct FAT32DriverRequest request = {
             .buf                   = &cl,
             .parent_cluster_number = ROOT_CLUSTER_NUMBER,
             .buffer_size           = 0,
         };
         request.buffer_size = 5*CLUSTER_SIZE;
-        // memcpy(request.name, (void *) (buf + 3), 8);
+        int nameLen = 0;
+        char* itr = (char * ) buf + 4;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
+                break;
+            }else{
+                nameLen++;
+            }
+        }
+        memcpy(request.name, (void *) (buf + 4), nameLen);
+        int32_t retcode;
+        syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+
+        if(retcode == 0)
+        {
+            // int32_t len = buffer_length(request.buf);
+            // puts every 16
+            // for (int32_t i = 0; i < len; i += 16)
+            // {   
+                // char* isi = request.buf + i;
+                // puts(isi, 0xF);
+            // }
+            puts(request.buf, 0xF);
+        }
+        else
+            puts("Error", 0x4);
+
+    } 
+    else if (memcmp((char * ) buf, "cp", 2) == 0)
+    {
+        struct FAT32DriverRequest request = {
+            .buf                   = &cl,
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0,
+        };
+        request.buffer_size = 5*CLUSTER_SIZE;
         int nameLen = 0;
         char* itr = (char * ) buf + 3;
         for(int i = 0; i < strlen(itr) ; i++){
