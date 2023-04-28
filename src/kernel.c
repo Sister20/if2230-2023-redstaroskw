@@ -35,9 +35,13 @@ void kernel_setup(void) {
     read(req);
 
     struct ClusterBuffer cbuf[5];
+    // for (uint32_t i = 0; i < 5; i++)
+        // for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            // cbuf[i].buf[j] = i + 'a';
+    char* isi = "halo, ini isi dari file nya hehe";
     for (uint32_t i = 0; i < 5; i++)
         for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
-            cbuf[i].buf[j] = i + 'a';
+            cbuf[i].buf[j] = isi[j];
 
     // TEST FILE
     struct FAT32DriverRequest request = {
