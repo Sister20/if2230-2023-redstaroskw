@@ -43,7 +43,7 @@ void puts(char* buf, uint8_t color){
     syscall(5, (uint32_t) buf, strlen(buf), color);
 }
 
-struct ClusterBuffer cl           = {0};
+struct ClusterBuffer cl = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
@@ -51,7 +51,30 @@ void parseCommand(uint32_t buf){
     } 
     else if (memcmp((char *) buf, "ls", 2) == 0)
     {
-        // puts(buf + 3, cpu.ecx, cpu.edx);
+        struct FAT32DriverRequest request = {
+            .buf = &cl,
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size = 0
+        };
+        memcpy(request.name, "ROOT\0\0\0\0", 8);
+        int32_t retcode;
+        syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
+        if (retcode == 0){
+            // print request.buf
+            char* itr = request.buf;
+            while(itr[0] != '\0'){
+                puts(itr,0xF);
+                itr += 32;
+            }
+        }
+        else if (retcode == 1)
+            puts("Not a folder", 0x4);
+        else if (retcode == 2)
+            puts("Not enough buffer", 0x4);
+        else if (retcode == 3)
+            puts("Not found", 0x4);
+        else
+            puts("Unknown error", 0x4);
     } 
     else if (memcmp((char *) buf, "mkdir", 5) == 0)
     {
@@ -186,6 +209,7 @@ int main(void) {
         puts("$ ", 0xF);
         syscall(4, (uint32_t) buf, 16, 0);
         parseCommand((uint32_t) buf);
+        puts(":nnnnnnnn", 0x8);
     }
     return 0;
 }
