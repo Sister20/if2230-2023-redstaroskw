@@ -25,14 +25,35 @@ void kernel_setup(void) {
     allocate_single_user_page_frame((uint8_t*) 0);
 
     // Write shell into memory
-    struct FAT32DriverRequest request = {
+    struct FAT32DriverRequest req = {
         .buf                   = (uint8_t*) 0,
         .name                  = "shell",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
     };
-    read(request);
+    read(req);
+
+    struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
+
+    // TEST FILE
+    struct FAT32DriverRequest request = {
+        .buf                   = cbuf,
+        .name                  = "ikanaide",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    } ;
+
+    write(request);  // Create folder "ikanaide"
+    memcpy(request.name, "kano1\0\0\0", 8);
+    write(request);  // Create folder "kano1"
+    memcpy(request.name, "daijoubu", 8);
+    request.buffer_size = 5*CLUSTER_SIZE;
+    write(request);  // Create fragmented file "daijoubu"
 
     // Set TSS $esp pointer and jump into shell 
     set_tss_kernel_current_stack();

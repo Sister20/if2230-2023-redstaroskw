@@ -43,6 +43,7 @@ void puts(char* buf, uint8_t color){
     syscall(5, (uint32_t) buf, strlen(buf), color);
 }
 
+struct ClusterBuffer cl           = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
@@ -62,10 +63,13 @@ void parseCommand(uint32_t buf){
         int32_t retcode;
         syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
         if (retcode == 0)
-            puts("Success", 0x2);
+            puts("Write success", 0x2);
+        else if (retcode == 1)
+            puts("File/Folder already exist", 0x4);
+        else if (retcode == 2)
+            puts("Invalid parent cluster", 0x4);
         else
-            puts("Failed", 0x4);
-        
+            puts("Unknown error", 0x4);
     }
     else if (memcmp((char * ) buf, "cat", 3) == 0)
     {
@@ -75,21 +79,25 @@ void parseCommand(uint32_t buf){
     {
         // puts(buf + 3, cpu.ecx, cpu.edx);
         struct FAT32DriverRequest request = {
+            .buf                   = &cl,
             .parent_cluster_number = ROOT_CLUSTER_NUMBER,
             .buffer_size           = 0,
         };
-
+        request.buffer_size = 5*CLUSTER_SIZE;
+        // memcpy(request.name, (void *) (buf + 3), 8);
         int nameLen = 0;
         char* itr = (char * ) buf + 3;
         for(int i = 0; i < strlen(itr) ; i++){
             if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
                 break;
             }else{
                 nameLen++;
             }
-        }/* file.txt*/
+        }
         memcpy(request.name, (void *) (buf + 3), nameLen);
-        memcmp(request.ext, (void *) (buf + 3 + nameLen + 1), 3);
         int32_t retcode;
         syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
 
@@ -101,18 +109,31 @@ void parseCommand(uint32_t buf){
     } 
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
-        // Delete a file
+        struct ClusterBuffer cbuf[5];
+        for (uint32_t i = 0; i < 5; i++)
+            for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+                cbuf[i].buf[j] = i + 'a';
+
         struct FAT32DriverRequest request = {
+            .buf                   = cbuf,
+            .name                  = "ikanaide",
+            .ext                   = "uwu",
             .parent_cluster_number = ROOT_CLUSTER_NUMBER,
             .buffer_size           = 0,
         };
+        request.buffer_size = 5*CLUSTER_SIZE;
         memcpy(request.name, (void *) (buf + 3), 8);
+        memcpy(request.ext, "\0\0\0", 3);
         int32_t retcode;
         syscall(3, (uint32_t) &request, (uint32_t) &retcode, 0);
         if (retcode == 0)
-            puts("Success", 0x2);
+            puts("Delete Success", 0x2);
+        else if (retcode == 1)
+            puts("File/Folder Not Found", 0x4);
+        else if (retcode == 2)
+            puts("Folder is empty", 0x4);
         else
-            puts("Failed", 0x4);
+            puts("Unknown Error", 0x4);
     } 
     else if (memcmp((char *) buf, "mv", 2) == 0)
     {
@@ -143,16 +164,10 @@ int main(void) {
     };
     int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+
     // if (retcode == 0)
         // syscall(5, (uint32_t) "owo", 3, 0xF);
-    struct FAT32DriverRequest req = {
-        .buf = &cl,
-        .name = "asu",
-        .ext = "uwu",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size = CLUSTER_SIZE,
-    };
-    syscall(2, (uint32_t) &req, (uint32_t) &retcode, 0);
+
     char buf[16];
     while (TRUE) {
         puts("Nadil@RedStarOSKW ", 0x2);
