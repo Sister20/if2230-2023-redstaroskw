@@ -102,11 +102,16 @@ void parseCommand(uint32_t buf){
         syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
 
         if(retcode == 0)
-            puts("Sukses", 0x2);
+            puts("Read Success", 0x2);
+        else if (retcode == 1)
+            puts("Not a file", 0x4);
+        else if (retcode == 2)
+            puts("Not enough buffer", 0x4);
+        else if (retcode == 3)
+            puts("Not found", 0x4);
         else
-            puts("Gagal", 0x4);
-
-    } 
+            puts("Unknown error", 0x4);
+    }
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
         struct ClusterBuffer cbuf[5];
