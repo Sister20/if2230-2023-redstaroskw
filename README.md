@@ -122,7 +122,7 @@ Pada milestone ketiga, hal-hal yang akan dibuat adalah sebagai berikut:
  ## Cara Menjalankan Program
  1. Clone repository Github ini
  2. Install semua requirements yang diperlukan
- 3. Jalankan program menjalankan `make os` di terminal pada directory repository ini
+ 3. Jalankan program menjalankan `make run` di terminal pada directory repository ini
  
  ## Acknowledgements
 - Tuhan Yang Maha Esa
