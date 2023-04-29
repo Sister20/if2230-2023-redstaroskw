@@ -306,7 +306,7 @@ int main(void) {
         puts(":",0x8);
         puts("/",0x1);
         puts("$ ", 0xF);
-        syscall(4, (uint32_t) buf, 16, 0);
+        syscall(4, (uint32_t) buf, 80, 0);
         parseCommand((uint32_t) buf);
         puts(":nnnnnnnn", 0x8);
     }
