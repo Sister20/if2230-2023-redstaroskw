@@ -75,11 +75,6 @@ void splash_screen(){
     framebuffer_write(12,38,' ',0,0x8);
     framebuffer_write(12,39,' ',0,0x8);
 
-    /*
-    //////////////////
-    //              //
-    //////////////////
-    */
     for(int i = 14 ; i < 15 ; i++){
         for (int j = 25 ; j < 50 ; j++){
             framebuffer_write(i, j, ' ', 0, 0xF);
@@ -92,6 +87,15 @@ void splash_screen(){
             framebuffer_write(i, j, ' ', 0, 0xF);
         }
     }
+
+    int index = 29;
+    framebuffer_write(15,index,'L',0xF,0);
+    framebuffer_write(15,index + 2,'O',0xF,0);
+    framebuffer_write(15,index + 4,'A',0xF,0);
+    framebuffer_write(15,index + 6,'D',0xF,0);
+    framebuffer_write(15,index + 8,'I',0xF,0);
+    framebuffer_write(15,index + 10,'N',0xF,0);
+    framebuffer_write(15,index + 12,'G',0xF,0);
 
     framebuffer_write(17,33,'R',0xF,0);
     framebuffer_write(17,34,'e',0xF,0);
@@ -179,8 +183,10 @@ void splash_screen(){
     framebuffer_write(22,44,'2',0xF,0);
     framebuffer_write(22,45,'4',0xF,0);
     framebuffer_set_cursor(3, 42);
+    int temp = 1;
+    int delay = 100000;
     for (int j = 25 ; j < 50 ; j++){
-        for(int n = 0 ; n < 100000 ; n++){
+        for(int n = 0 ; n < delay ; n++){
             for(int i = 14 ; i < 15 ; i++){
                 framebuffer_write(i, j, ' ', 0, 0x2);
                 framebuffer_write(i, j, ' ', 0, 0x2);
@@ -190,6 +196,26 @@ void splash_screen(){
                 framebuffer_write(i, j, ' ', 0, 0x2);
                 framebuffer_write(i, j, ' ', 0, 0x2);
                 framebuffer_write(i, j, ' ', 0, 0x2);
+                if (n % delay == 0){
+                    if (temp == 1){
+                        framebuffer_write(15,index + 14,'.',0xF,0);
+                        temp ++;
+                    }
+                    else if (temp == 2){
+                        framebuffer_write(15,index + 16,'.',0xF,0);
+                        temp ++;
+                    }
+                    else if (temp == 3){
+                        framebuffer_write(15,index + 18,'.',0xF,0);
+                        temp ++;
+                    }
+                    else{
+                        framebuffer_write(15,index + 14,' ',0xF,0);
+                        framebuffer_write(15,index + 16,' ',0xF,0);
+                        framebuffer_write(15,index + 18,' ',0xF,0);
+                        temp = 1;
+                    }
+                }
             }
         }
     }
@@ -224,7 +250,7 @@ void kernel_setup(void) {
     // for (uint32_t i = 0; i < 5; i++)
         // for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
             // cbuf[i].buf[j] = i + 'a';
-    char* isi = "halo, ini isi dari file nya hehe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 1920 kontol anjing memek asuu ahhh";
+    char* isi = "halo, ini isi dari file nya hehe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 1920 halo halo ini aku lagi tes kalo isi dari text nya panjang heheheheheheh";
     for (uint32_t i = 0; i < 5; i++)
         for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
             cbuf[i].buf[j] = isi[j];
