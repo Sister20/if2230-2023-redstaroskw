@@ -347,6 +347,11 @@ int main(void) {
         puts("Nadil@RedStarOSKW ", 0x2);
         puts(":",0x8);
         puts("/",0x1);
+        for (uint32_t i = 0 ; i <= id ; i++)
+        {
+            puts(listName[i], 0x8);
+            puts("/", 0x8);
+        }
         puts("$ ", 0xF);
         syscall(4, (uint32_t) buf, 80, 0);
         parseCommand((uint32_t) buf);
