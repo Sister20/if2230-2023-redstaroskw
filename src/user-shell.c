@@ -503,6 +503,51 @@ void parseCommand(uint32_t buf){
     {
         puts("cls", 0xF);
     }
+    else if (memcmp((char *) buf, "touch", 5) == 0)
+    {
+        struct FAT32DriverRequest request = {
+            .buf                   = &cl,
+            .parent_cluster_number = listCluster[id],
+            .buffer_size           = 0,
+        };
+        request.buffer_size = 5*CLUSTER_SIZE;
+
+        /* get the name and ext of the file */
+        int nameLen1 = 0;
+        char* itr = (char * ) buf + 6;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
+                break;
+            }else{
+                nameLen1++;
+            }
+        }
+
+        memcpy(request.name, (void * ) buf + 6, nameLen1);
+        uint32_t retcode;
+        struct ClusterBuffer cbuf[5];
+        
+        /* Dapetin isi filenya */
+        char* isi = "";
+
+        memcpy(isi, (void *) buf + 6 + nameLen1 + 1 + 3, sizeof(buf + 6 + nameLen1 + 1 + 3));
+
+        for (uint32_t i = 0; i < 5; i++)
+            for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+                cbuf[i].buf[j] = isi[j];
+        /* Write to the file */
+        request.buf = cbuf;
+        syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
+        if(retcode == 0){
+            puts("Write success", 0x2);
+        }else{
+            puts("Write unsuccessful", 0x4);
+        }
+
+    }
     else
     {
         puts("Command not found", 0x4);
