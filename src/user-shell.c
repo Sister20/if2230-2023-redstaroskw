@@ -89,13 +89,13 @@ void parseCommand(uint32_t buf){
         }
         else
         {
-        struct FAT32DriverRequest request = {
-            .buf = &cl,
-            .parent_cluster_number = listCluster[id],
-            .buffer_size = 0
-        };
-            memcpy(request.name, (void *) buf + 3, 8);
-            int32_t retcode;
+            struct FAT32DriverRequest request = {
+                .buf = &cl,
+                .parent_cluster_number = listCluster[id],
+                .buffer_size = 0
+            };
+            memcpy(request.name, listName[id], 8);
+            int32_t retcode = listCluster[id];
             struct FAT32DirectoryTable table = {};
             request.buf = &table;
             syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
@@ -105,7 +105,9 @@ void parseCommand(uint32_t buf){
                 {
                     id++;
                     listCluster[id] = table.table[i].cluster_low | (table.table[i].cluster_high << 16);
-                    listName [id] = table.table[i].name;
+                    // memcpy(listName[id],table.table[i].name,8);
+                    listName[id] = table.table[i].name;
+                    // memcpy(listName[id],cek2, 8);
                     puts("Change directory success", 0x2);
                     return;
                 }
@@ -117,9 +119,17 @@ void parseCommand(uint32_t buf){
     {
         struct FAT32DriverRequest request = {
             .buf = &cl,
-            .parent_cluster_number = listCluster[id],
             .buffer_size = 0
         };
+        if (id!=0){
+            request.parent_cluster_number = listCluster[id-1];
+            uint32_t cek = listCluster[id-1];
+            listCluster[id-1] = cek;
+        }
+        else
+        {
+            request.parent_cluster_number = listCluster[id];
+        }
         memcpy(request.name, listName[id],8);
         int32_t retcode;
         struct FAT32DirectoryTable table = {};
@@ -130,7 +140,10 @@ void parseCommand(uint32_t buf){
             {
                 puts(table.table[i].name, 0xF);
                 if (table.table[i].name[0] == '\0')
+                {   
+                    memcpy(listName[id], request.name,8);
                     break;
+                }
             }
         }
         else if (retcode == 1)
