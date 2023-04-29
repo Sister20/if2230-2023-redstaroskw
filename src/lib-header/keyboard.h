@@ -60,6 +60,8 @@ void set_row(uint8_t r);
 
 void set_col(uint8_t c);
 
+void set_terminal_length(uint8_t len);
+
 /* -- Keyboard Interrupt Service Routine -- */
 
 /**

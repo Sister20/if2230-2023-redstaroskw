@@ -62,6 +62,12 @@ void set_col(uint8_t c){
     col = c;
 }
 
+int8_t terminal_length = 0;
+
+void set_terminal_length(uint8_t len){
+    terminal_length = len;
+}
+
 /**
  * Handling keyboard interrupt & process scancodes into ASCII character.
  * Will start listen and process keyboard scancode if keyboard_input_on.
@@ -82,7 +88,7 @@ void keyboard_isr(void) {
         uint8_t scancode = in(KEYBOARD_DATA_PORT);
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
         if(mapped_char == '\b'){
-            if(col >= 22){
+            if(col >= terminal_length + 1){
                 backspace_pressed = TRUE;
                 framebuffer_write(row, col-1, ' ', 0x0F, 0x00);
                 framebuffer_set_cursor(row,col-1);

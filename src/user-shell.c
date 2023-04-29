@@ -342,15 +342,13 @@ int main(void) {
     // if (retcode == 0)
         // syscall(5, (uint32_t) "owo", 3, 0xF);
 
-    char buf[16];
+    char buf[80];
+    char* terminal = "root@redStarOSKW ";
     while (TRUE) {
-        puts("Nadil@RedStarOSKW ", 0x2);
-        puts(":",0x8);
-        puts("/",0x1);
-        puts("$ ", 0xF);
+        syscall(6, (uint32_t) terminal, strlen(terminal), 0x2);
+        syscall(7, (uint32_t) listName[id], strlen(listName[id]), 0x1);
         syscall(4, (uint32_t) buf, 80, 0);
         parseCommand((uint32_t) buf);
-        puts(":nnnnnnnn", 0x8);
     }
     return 0;
 }

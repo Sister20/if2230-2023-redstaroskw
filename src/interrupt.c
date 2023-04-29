@@ -83,27 +83,9 @@ void set_tss_kernel_current_stack(void) {
 }
 
 uint8_t row_now = 0;
+uint8_t length_of_terminal = 0;
 void puts(char *str, uint32_t len, uint32_t color) {
-    if (memcmp(str,"Nadil@RedStarOSKW ",18) == 0)
-    {
-        for (uint32_t i = 0; i < len; i++)
-        {
-            framebuffer_write(row_now, i, str[i], color, 0);
-        }
-    }
-    else if (memcmp(str,":",1) == 0)
-    {
-        framebuffer_write(row_now, 17, str[0], color, 0);
-    }
-    else if (memcmp(str,"/",1) == 0)
-    {
-        framebuffer_write(row_now, 18, str[0], color, 0);
-    }
-    else if (memcmp(str,"$",1) == 0)
-    {
-        framebuffer_write(row_now, 19, str[0], color, 0);
-    }
-    else if (memcmp(str,"cls",3) == 0)
+    if (memcmp(str,"cls",3) == 0)
     {
         row_now = 0;
         for (uint32_t i = 0; i < 25; i++)
@@ -132,6 +114,27 @@ void puts(char *str, uint32_t len, uint32_t color) {
         row_now ++;
     }
 }
+
+void puts_terminal(char *str, uint32_t len, uint32_t color)
+{
+    for (uint32_t i = 0; i < len; i++)
+    {
+        framebuffer_write(row_now, i, str[i], color, 0);
+    }
+}
+
+void puts_path(char *str, uint32_t len, uint32_t color)
+{
+    framebuffer_write(row_now, length_of_terminal-1, ':', 0x8, 0);
+    framebuffer_write(row_now, length_of_terminal, '/', color, 0);
+    for (uint32_t i = 0; i < len; i++)
+    {
+        framebuffer_write(row_now, length_of_terminal+1+i, str[i], color, 0);
+    }
+    framebuffer_write(row_now, length_of_terminal+1+len, '/', color, 0);
+    framebuffer_write(row_now, length_of_terminal+3+len, '$', 0xF, 0);
+}
+
 
 void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
     if (cpu.eax == 0) // FS read
@@ -165,9 +168,21 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
     }
     else if (cpu.eax == 5) // TEXT OUTPUT
     {
-        set_col(21);
-        set_row(row_now);
-        framebuffer_set_cursor(row_now, 21);
         puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+    }
+    else if (cpu.eax == 6) // TERMINAL OUTPUT
+    {
+        length_of_terminal = cpu.ecx;
+        puts_terminal((char *) cpu.ebx, cpu.ecx, cpu.edx);
+    }
+    else if (cpu.eax == 7) // PATH OUTPUT
+    {
+        framebuffer_set_cursor(row_now, length_of_terminal);
+        puts_path((char *) cpu.ebx, cpu.ecx, cpu.edx);
+        length_of_terminal += cpu.ecx;
+        set_terminal_length(length_of_terminal + 5);
+        set_col(length_of_terminal + 5);
+        set_row(row_now);
+        framebuffer_set_cursor(row_now, length_of_terminal + 5);
     }
 }
