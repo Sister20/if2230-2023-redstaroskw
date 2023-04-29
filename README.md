@@ -5,6 +5,8 @@
 
 > Milestone 3: Pembuatan Sistem Operasi x86 Paging, User Mode, dan Shell
 
+![](loading.gif)
+
 ## Anggota Kelompok
 <table>
     <tr>
