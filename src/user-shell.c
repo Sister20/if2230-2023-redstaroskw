@@ -107,10 +107,10 @@ void parseCommand(uint32_t buf){
                     listCluster[id] = table.table[i].cluster_low | (table.table[i].cluster_high << 16);
                     listName [id] = table.table[i].name;
                     puts("Change directory success", 0x2);
-                    break;
+                    return;
                 }
             }
-            syscall(5, buf + 3, 16, 0xF);
+            puts("No such directory", 0x4);
         }
     } 
     else if (memcmp((char *) buf, "ls", 2) == 0)
