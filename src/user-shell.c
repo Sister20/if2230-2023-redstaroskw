@@ -1,14 +1,16 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/fat32.h"
 
-uint32_t cwd = ROOT_CLUSTER_NUMBER;
+uint32_t id = 0;
+uint32_t listCluster[100];
+char* listName[100];
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
     __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
     __asm__ volatile("mov %0, %%edx" : /* <Empty> */ : "r"(edx));
     __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(eax));
-    // Note : gcc usually use %eax as intermediate register,
+    // Note : gcc usually use %eax as intermediate register,ROOT\0\0\0\0
     //        so it need to be the last one to mov
     __asm__ volatile("int $0x30");
 }
@@ -73,45 +75,62 @@ struct ClusterBuffer cl           = {0};
 void parseCommand(uint32_t buf){
     if (memcmp((char *) buf, "cd", 2) == 0)
     {
+        if (memcmp("..", (void *) buf + 3, 2) == 0)
+        {
+            if (id == 0)
+            {
+                puts("Already in root", 0x4);
+                return;
+            }
+            id--;
+            puts("Change directory success", 0x2);
+            puts(listName[id], 0xF);
+            return;
+        }
+        else
+        {
         struct FAT32DriverRequest request = {
             .buf = &cl,
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .parent_cluster_number = listCluster[id],
             .buffer_size = 0
         };
-        memcpy(request.name, "ROOT\0\0\0\0", 8);
-        int32_t retcode;
-        struct FAT32DirectoryTable table = {};
-        request.buf = &table;
-        syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
-        for (int i = 0 ; i < 64 ; i++)
-        {
-            if (memcmp(table.table[i].name, (char *) buf + 3, 8) == 0)
+            memcpy(request.name, (void *) buf + 3, 8);
+            int32_t retcode;
+            struct FAT32DirectoryTable table = {};
+            request.buf = &table;
+            syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
+            for (int i = 0 ; i < 64 ; i++)
             {
-                cwd = table.table[i].cluster_low | (table.table[i].cluster_high << 16);
-                uint32_t temp = cwd;
-                cwd = temp;
-                puts("Change directory success", 0x2);
-                break;
+                if (memcmp(table.table[i].name, (char *) buf + 3, 8) == 0)
+                {
+                    id++;
+                    listCluster[id] = table.table[i].cluster_low | (table.table[i].cluster_high << 16);
+                    listName [id] = table.table[i].name;
+                    puts("Change directory success", 0x2);
+                    break;
+                }
             }
+            syscall(5, buf + 3, 16, 0xF);
         }
-        syscall(5, buf + 3, 16, 0xF);
     } 
     else if (memcmp((char *) buf, "ls", 2) == 0)
     {
         struct FAT32DriverRequest request = {
             .buf = &cl,
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .parent_cluster_number = listCluster[id],
             .buffer_size = 0
         };
-        memcpy(request.name, "ROOT\0\0\0\0", 8);
+        memcpy(request.name, listName[id],8);
         int32_t retcode;
+        struct FAT32DirectoryTable table = {};
+        request.buf = &table;
         syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
         if (retcode == 0){
-            // print request.buf
-            char* itr = request.buf;
-            while(itr[0] != '\0'){
-                puts(itr,0xF);
-                itr += 32;
+            for (int i = 0 ; i < 64 ; i++)
+            {
+                puts(table.table[i].name, 0xF);
+                if (table.table[i].name[0] == '\0')
+                    break;
             }
         }
         else if (retcode == 1)
@@ -126,7 +145,7 @@ void parseCommand(uint32_t buf){
     else if (memcmp((char *) buf, "mkdir", 5) == 0)
     {
         struct FAT32DriverRequest request = {
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .parent_cluster_number = listCluster[id],
             .buffer_size           = 0,
         };
         memcpy(request.name, (void *) (buf + 6), 8);
@@ -145,7 +164,7 @@ void parseCommand(uint32_t buf){
     {
         struct FAT32DriverRequest request = {
             .buf                   = &cl,
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .parent_cluster_number = listCluster[id],
             .buffer_size           = 0,
         };
         request.buffer_size = 5*CLUSTER_SIZE;
@@ -217,7 +236,7 @@ void parseCommand(uint32_t buf){
     {
         struct FAT32DriverRequest request = {
             .buf                   = &cl,
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .parent_cluster_number = listCluster[id],
             .buffer_size           = 0,
         };
         request.buffer_size = 5*CLUSTER_SIZE;
@@ -265,6 +284,8 @@ void parseCommand(uint32_t buf){
 }
 
 int main(void) {
+    listCluster[0] = (uint32_t) ROOT_CLUSTER_NUMBER;
+    listName[0] = (char *) "ROOT\0\0\0\0";
     struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
