@@ -117,9 +117,17 @@ void puts(char *str, uint32_t len, uint32_t color) {
     else
     {
         row_now++;
+        uint32_t col = 0;
         for (uint32_t i = 0; i < len; i++)
         {
-            framebuffer_write(row_now, i, str[i], color, 0);
+            if (str[i] == '\n'){
+                row_now ++;
+                col = 0;
+            }
+            else{
+                framebuffer_write(row_now, col, str[i], color, 0);
+                col++;
+            }
         }
         row_now ++;
     }

@@ -185,6 +185,7 @@ void splash_screen(){
     framebuffer_set_cursor(3, 42);
     int temp = 1;
     int delay = 100000;
+    // int delay = 1;
     for (int j = 25 ; j < 50 ; j++){
         for(int n = 0 ; n < delay ; n++){
             for(int i = 14 ; i < 15 ; i++){
@@ -250,7 +251,7 @@ void kernel_setup(void) {
     // for (uint32_t i = 0; i < 5; i++)
         // for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
             // cbuf[i].buf[j] = i + 'a';
-    char* isi = "halo, ini isi dari file nya hehe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 1920 halo halo ini aku lagi tes kalo isi dari text nya panjang heheheheheheh";
+    char* isi = "halo, ini \nisi dari\nfile nya hehe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 1920 halo halo ini aku lagi tes kalo isi dari text nya panjang heheheheheheh";
     for (uint32_t i = 0; i < 5; i++)
         for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
             cbuf[i].buf[j] = isi[j];
