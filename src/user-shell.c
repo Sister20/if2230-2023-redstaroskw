@@ -36,6 +36,13 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
     return dstbuf;
 }
 
+void* memset(void *s, int c, size_t n) {
+    uint8_t *buf = (uint8_t*) s;
+    for (size_t i = 0; i < n; i++)
+        buf[i] = (uint8_t) c;
+    return s;
+}
+
 int strlen(char* str){
     int len = 0;
     while (str[len] != '\0')
@@ -528,16 +535,16 @@ void parseCommand(uint32_t buf){
 
         memcpy(request.name, (void * ) buf + 6, nameLen1);
         uint32_t retcode;
-        struct ClusterBuffer cbuf[5];
+        struct ClusterBuffer cbuf[5] = {};
         
         /* Dapetin isi filenya */
         char* isi = "";
-
-        memcpy(isi, (void *) buf + 6 + nameLen1 + 1 + 3, sizeof(buf + 6 + nameLen1 + 1 + 3));
+        isi = (char *)buf + 6 + nameLen1 + 2 + 3;
 
         for (uint32_t i = 0; i < 5; i++)
             for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
                 cbuf[i].buf[j] = isi[j];
+                
         /* Write to the file */
         request.buf = cbuf;
         syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
