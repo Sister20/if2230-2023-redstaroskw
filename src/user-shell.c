@@ -448,7 +448,7 @@ void parseCommand(uint32_t buf){
 
         /* get the name and ext of the file */
         int nameLen1 = 0;
-        char* itr = (char * ) buf + 5;
+        char* itr = (char * ) buf + 6;
         for(int i = 0; i < strlen(itr) ; i++){
             if(itr[i] == '.'){
                 request.ext[0] = itr[i+1];
@@ -460,9 +460,16 @@ void parseCommand(uint32_t buf){
             }
         }
 
-        memcpy(request.name, (void * ) buf + 5 + nameLen1, nameLen1);
+        memcpy(request.name, (void * ) buf + 6, nameLen1);
         uint32_t retcode;
         syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
+
+        /* Write to the file */
+        if(retcode == 0){
+            puts("Write success", 0x2);
+        }else{
+            puts("Write unsuccessful", 0x4);
+        }
 
     }
     else
