@@ -437,6 +437,34 @@ void parseCommand(uint32_t buf){
     {
         puts("cls", 0xF);
     }
+    else if (memcmp((char *) buf, "touch", 5) == 0)
+    {
+        struct FAT32DriverRequest request = {
+            .buf                   = &cl,
+            .parent_cluster_number = listCluster[id],
+            .buffer_size           = 0,
+        };
+        request.buffer_size = 5*CLUSTER_SIZE;
+
+        /* get the name and ext of the file */
+        int nameLen1 = 0;
+        char* itr = (char * ) buf + 5;
+        for(int i = 0; i < strlen(itr) ; i++){
+            if(itr[i] == '.'){
+                request.ext[0] = itr[i+1];
+                request.ext[1] = itr[i+2];
+                request.ext[2] = itr[i+3];
+                break;
+            }else{
+                nameLen1++;
+            }
+        }
+
+        memcpy(request.name, (void * ) buf + 5 + nameLen1, nameLen1);
+        uint32_t retcode;
+        syscall(2, (uint32_t) &request, (uint32_t) &retcode, 0);
+
+    }
     else
     {
         puts("Command not found", 0x4);
