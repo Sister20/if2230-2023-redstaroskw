@@ -217,20 +217,62 @@ void parseCommand(uint32_t buf){
                 nameLen++;
             }
         }
+
         memcpy(request.name, (void *) (buf + 3), nameLen);
         int32_t retcode;
+
+        struct FAT32DriverRequest request2 = {
+            .buf                   = &cl,
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+            .buffer_size           = 0,
+        };
+        
+        memcpy(request2.name, listName[id], 8);
         syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
 
-        if(retcode == 0)
-            puts("Read Success", 0x2);
-        else if (retcode == 1)
+        /* Read the Destination Folder to paste */
+        if (retcode == 0)
+            puts("Read success", 0x2);
+        else if (retcode == 1){
             puts("Not a file", 0x4);
-        else if (retcode == 2)
+            return;
+        }
+        else if (retcode == 2){
             puts("Not enough buffer", 0x4);
-        else if (retcode == 3)
-            puts("Not found", 0x4);
-        else
+            return;
+        }
+        else if (retcode == 3){
+            puts("File Not found", 0x4);
+            return;
+        }
+        else{
             puts("Unknown error", 0x4);
+            return;
+        }
+
+        int32_t retcode2;
+        struct FAT32DirectoryTable table = {};
+        request2.buf = &table;
+        syscall(1, (uint32_t) &request2, (uint32_t) &retcode, 0);
+        // char* tes = (char *)buf + 3 + nameLen + 5;
+        // char* its = tes;
+        // its += 1;
+        for(int i = 0; i < 64; i++){
+            if(memcmp(table.table[i].name, (void * )(buf + 3 + nameLen + 5), strlen((char *) buf + 3 + nameLen + 5)) == 0){
+                request.parent_cluster_number = (table.table[i].cluster_high << 16) | table.table[i].cluster_low;
+                syscall(2, (uint32_t) &request, (uint32_t) &retcode2, 0);
+                break;
+            }
+        }
+
+        if (retcode2 == 0)
+            puts("Write success", 0x2);
+        else if (retcode2 == 1)
+            puts("File/Folder already exist", 0x4);
+        else if (retcode2 == 2)
+            puts("Invalid parent cluster", 0x4);
+        else
+            puts("Target folder not found", 0x4);
     }
     else if (memcmp((char *) buf, "rm", 2) == 0)
     {
