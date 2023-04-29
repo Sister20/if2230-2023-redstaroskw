@@ -43,6 +43,13 @@ int strlen(char* str){
     return len;
 }
 
+void concat(char* src, char* dest){
+    int32_t len = strlen(dest);
+    for (int32_t i = 0; i < strlen(src); i++)
+        dest[len + i] = src[i];
+    dest[len + strlen(src)] = '\0';
+}
+
 void puts(char* buf, uint8_t color){
     syscall(5, (uint32_t) buf, strlen(buf), color);
 }
@@ -138,6 +145,7 @@ void parseCommand(uint32_t buf){
         if (retcode == 0){
             for (int i = 0 ; i < 64 ; i++)
             {
+                // char* name =table.table[i].name 
                 puts(table.table[i].name, 0xF);
                 if (table.table[i].name[0] == '\0')
                 {   
@@ -378,9 +386,6 @@ void parseCommand(uint32_t buf){
         struct FAT32DirectoryTable table = {};
         request2.buf = &table;
         syscall(1, (uint32_t) &request2, (uint32_t) &retcode, 0);
-        // char* tes = (char *)buf + 3 + nameLen + 5;
-        // char* its = tes;
-        // its += 1;
         for(int i = 0; i < 64; i++){
             if(memcmp(table.table[i].name, (void * )(buf + 3 + nameLen + 5), strlen((char *) buf + 3 + nameLen + 5)) == 0){
                 request.parent_cluster_number = (table.table[i].cluster_high << 16) | table.table[i].cluster_low;
@@ -431,7 +436,68 @@ void parseCommand(uint32_t buf){
     } 
     else if (memcmp((char *) buf, "whereis", 7) == 0)
     {
-        // puts(buf + 8, cpu.ecx, cpu.edx);
+        char* filename;
+        char *ext;
+        
+        for (int i = 0; i < strlen((char *) buf + 8); i++)
+        {
+            if (((char *) buf + 8)[i] == '.') // FILE
+            {
+                filename = (char *) buf + 8;
+                ext = (char *) buf + 8 + i + 1;
+                // remove everything after . in filename
+                for (int i = 0; i < strlen(filename); i++)
+                {
+                    if (filename[i] == '.')
+                    {
+                        filename[i] = '\0';
+                        break;
+                    }
+                }
+                break;
+            }
+            else // FOLDER
+            {
+                filename = (char *) buf + 8;
+                ext = "";
+            }
+        }
+        concat(ext, filename);
+
+        // FINDER
+        struct FAT32DriverRequest request = {
+            .buf = &cl,
+            .parent_cluster_number = listCluster[id],
+            .buffer_size = 0,
+        };
+        if (id!=0){
+            request.parent_cluster_number = listCluster[id-1];
+            uint32_t cek = listCluster[id-1];
+            listCluster[id-1] = cek;
+        }
+        else
+        {
+            request.parent_cluster_number = listCluster[id];
+        }
+        memcpy(request.name, listName[id], 8);
+
+        int32_t retcode;
+        struct FAT32DirectoryTable table = {};
+        request.buf = &table;
+        syscall(1, (uint32_t) &request, (uint32_t) &retcode, 0);
+
+        if (retcode == 0){
+            for (int i = 0 ; i < 64 ; i++)
+            {
+                char* name = table.table[i].name; 
+                if(memcmp(name, filename, strlen(filename)) == 0){
+                    puts("Found",0x2);
+                    return;
+                }
+            }
+        }
+        puts("Not found",0x4);
+
     } 
     else if (memcmp((char *) buf, "cls", 3) == 0)
     {
